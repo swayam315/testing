@@ -1,0 +1,2219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HireReady AI - Intelligent Interview Simulator</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- jsPDF for Report Generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <!-- Markdown Parser -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Custom Styles -->
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #000000; color: white; }
+        
+        /* Glassmorphism Utilities */
+        .glass {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .glass-panel {
+            background: rgba(17, 24, 39, 0.6);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Animations */
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.2); }
+            50% { box-shadow: 0 0 40px rgba(59, 130, 246, 0.5); }
+        }
+
+        @keyframes voice-wave {
+            0% { height: 4px; }
+            50% { height: 24px; }
+            100% { height: 4px; }
+        }
+        
+        .voice-active .bar {
+            animation: voice-wave 0.5s infinite ease-in-out;
+        }
+        .voice-active .bar:nth-child(1) { animation-delay: 0.1s; }
+        .voice-active .bar:nth-child(2) { animation-delay: 0.2s; }
+        .voice-active .bar:nth-child(3) { animation-delay: 0.3s; }
+        .voice-active .bar:nth-child(4) { animation-delay: 0.4s; }
+        .voice-active .bar:nth-child(5) { animation-delay: 0.5s; }
+        
+        .avatar-glow { animation: pulse-glow 2s infinite; }
+
+        /* Text Shimmer for Dream Job */
+        @keyframes text-shimmer {
+            0% { background-position: 200% center; }
+            100% { background-position: -200% center; }
+        }
+        .animate-text-shimmer {
+            background-size: 200% auto;
+            animation: text-shimmer 3s linear infinite;
+        }
+
+        /* Marquee Animation - Faster (20s) */
+        @keyframes marquee {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+        .animate-marquee {
+            animation: marquee 20s linear infinite; 
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0f0f13; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #555; }
+        
+        .hidden-force { display: none !important; }
+        
+        /* Toggle Switch Styles */
+        .toggle-checkbox:checked {
+            right: 0;
+            border-color: #68D391;
+        }
+        .toggle-checkbox:checked + .toggle-label {
+            background-color: #68D391;
+        }
+
+        .code-editor {
+            font-family: 'Fira Code', 'Courier New', monospace;
+            line-height: 1.6;
+        }
+
+        /* Chat Styles */
+        .chat-bubble {
+            position: relative;
+            max-width: 85%;
+            padding: 10px 14px;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            animation: fadeIn 0.3s ease-out;
+        }
+        .chat-bubble.ai {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: #e5e7eb;
+            border-top-left-radius: 2px;
+        }
+        .chat-bubble.user {
+            background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+            color: white;
+            border-top-right-radius: 2px;
+            margin-left: auto;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Nav Link Hover Effect */
+        .nav-link {
+            position: relative;
+        }
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -4px;
+            left: 0;
+            background-color: #3b82f6;
+            transition: width 0.3s;
+        }
+        .nav-link:hover::after {
+            width: 100%;
+        }
+
+        /* Scroll Image Transition & Text Animation */
+        #sticky-image {
+            transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+        }
+        
+        /* The specific animation for text going up */
+        .scroll-text {
+            opacity: 0;
+            transform: translateY(100px); /* Start lower so it animates UP */
+            transition: all 0.8s ease-out;
+        }
+        .scroll-text.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        /* Container for sticky behavior */
+        .sticky-wrapper {
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Timeline Animations */
+        .timeline-progress {
+            height: 0%;
+            transition: none; 
+        }
+
+        /* Pricing Text Gradient Animation */
+        @keyframes text-gradient-move {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .animate-gradient-text {
+            background-size: 200% auto;
+            animation: text-gradient-move 3s linear infinite;
+        }
+
+        /* Feature Card Hover Effect */
+        .feature-card-hover:hover {
+            border-color: #6b21a8; /* Dark Purple */
+            box-shadow: 0 0 25px rgba(107, 33, 168, 0.3); /* Purple Glow */
+        }
+
+        /* Scroll-Telling Helpers */
+        .scrolly-text { opacity: 0.3; transition: opacity 0.4s ease; }
+        .scrolly-text.active { opacity: 1; }
+        .text-highlight-anim {
+            background-image: linear-gradient(90deg, #ffffff 0%, #a855f7 50%, #ffffff 100%);
+            background-size: 200% auto;
+            -webkit-background-clip: text; background-clip: text; color: transparent;
+            animation: text-shimmer 3s linear infinite;
+        }
+        .transition-image { transition: opacity 0.4s ease; }
+
+        /* Headline accent gradient and right-to-left entrance */
+        .headline-accent {
+            background-image: linear-gradient(90deg, #ffffff, #a855f7);
+            -webkit-background-clip: text; background-clip: text; color: transparent;
+        }
+        @keyframes slide-in-right {
+            from { opacity: 0; transform: translateX(40px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        .anim-rtl { animation: slide-in-right 600ms ease both; }
+    </style>
+</head>
+<body class="overflow-x-hidden selection:bg-purple-500/30 min-h-screen flex flex-col">
+
+    <!-- Navigation -->
+    <nav id="main-nav" class="fixed top-0 w-full z-50 bg-transparent backdrop-blur-0 border-b-0 transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative h-24 flex items-center justify-between">
+            
+            <!-- Left: Logo (CHANGED TO IMAGE) -->
+            <div class="flex-shrink-0 cursor-pointer" onclick="router.navigate('landing')">
+                <img src="logo.png" alt="Mockify AI" class="h-20 object-contain" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+                <span class="text-2xl font-bold text-purple-500 hidden">Mockify AI</span>
+            </div>
+            
+            <!-- Center: Floating Glass Capsule -->
+            <div class="hidden md:flex absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white/5 backdrop-blur-md border border-white/10 rounded-full px-8 py-3 items-center gap-8 shadow-lg shadow-purple-500/5">
+                <a href="javascript:void(0)" onclick="router.navigate('landing')" class="text-sm font-medium text-gray-300 hover:text-white transition-colors nav-link">Home</a>
+                <a href="javascript:void(0)" onclick="router.navigate('about')" class="text-sm font-medium text-gray-300 hover:text-white transition-colors nav-link">About Us</a>
+                
+                <!-- Our Features Mega Menu -->
+                <div class="relative group h-full flex items-center">
+                    <button class="text-sm font-medium text-gray-300 hover:text-white transition-colors flex items-center gap-1 group-hover:text-purple-400">
+                        Our Features <i data-lucide="chevron-down" class="w-4 h-4 transition-transform group-hover:rotate-180"></i>
+                    </button>
+                    <!-- Mega Menu Dropdown -->
+                    <div class="absolute top-full left-1/2 -translate-x-1/2 mt-6 w-[900px] bg-[#0a0a0f] border border-white/10 rounded-2xl shadow-2xl p-6 grid grid-cols-3 gap-6 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform translate-y-2 group-hover:translate-y-0 z-50">
+                        <!-- Card 1 -->
+                        <div class="group/card cursor-pointer hover:bg-white/5 p-4 rounded-xl transition-colors" onclick="router.navigate('dashboard')">
+                            <div class="h-40 rounded-lg border border-white/10 overflow-hidden mb-4 relative">
+                                <img src="img1.jpg" class="w-full h-full object-cover group-hover/card:scale-105 transition-transform duration-500" onerror="this.src='https://images.unsplash.com/photo-1531746790731-6c087fecd65a?auto=format&fit=crop&q=80'">
+                            </div>
+                            <h4 class="text-white font-bold text-sm mb-2 flex items-center gap-2">
+                                <span class="w-1.5 h-1.5 rounded-full bg-purple-500"></span> AI Simulation
+                            </h4>
+                            <p class="text-xs text-gray-400 leading-relaxed">Experience realistic interview scenarios with our advanced AI. It adapts to your responses providing real-time feedback.</p>
+                        </div>
+                        <!-- Card 2 -->
+                        <div class="group/card cursor-pointer hover:bg-white/5 p-4 rounded-xl transition-colors" onclick="router.navigate('dashboard')">
+                            <div class="h-40 rounded-lg border border-white/10 overflow-hidden mb-4 relative">
+                                <img src="img2.jpg" class="w-full h-full object-cover group-hover/card:scale-105 transition-transform duration-500" onerror="this.src='https://images.unsplash.com/photo-1516116216624-53e697fedbea?auto=format&fit=crop&q=80'">
+                            </div>
+                            <h4 class="text-white font-bold text-sm mb-2 flex items-center gap-2">
+                                <span class="w-1.5 h-1.5 rounded-full bg-purple-500"></span> Top 150 Questions
+                            </h4>
+                            <p class="text-xs text-gray-400 leading-relaxed">Master the most frequently asked coding problems. Curated from top tech companies covering all essential algorithms.</p>
+                        </div>
+                        <!-- Card 3 -->
+                        <div class="group/card cursor-pointer hover:bg-white/5 p-4 rounded-xl transition-colors" onclick="router.navigate('dashboard')">
+                            <div class="h-40 rounded-lg border border-white/10 overflow-hidden mb-4 relative">
+                                <img src="resume.png" class="w-full h-full object-cover group-hover/card:scale-105 transition-transform duration-500" onerror="this.src='https://images.unsplash.com/photo-1586281380349-632531db7ed4?auto=format&fit=crop&q=80'">
+                            </div>
+                            <h4 class="text-white font-bold text-sm mb-2 flex items-center gap-2">
+                                <span class="w-1.5 h-1.5 rounded-full bg-purple-500"></span> Resume Analyser
+                            </h4>
+                            <p class="text-xs text-gray-400 leading-relaxed">Get instant, AI-driven feedback on your resume. Improve ATS scores and formatting to stand out to top recruiters.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <a href="javascript:void(0)" onclick="router.navigate('pricing')" class="text-sm font-medium text-gray-300 hover:text-white transition-colors nav-link">Pricing</a>
+                <a id="nav-dashboard-center" href="javascript:void(0)" onclick="router.navigate('dashboard')" class="text-sm font-medium text-gray-300 hover:text-white transition-colors nav-link hidden">Dashboard</a>
+            </div>
+
+            <!-- Right: Action Buttons -->
+            <div class="flex-shrink-0" id="nav-right-action">
+                <!-- Injected via JS -->
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main id="app" class="relative z-10 flex-grow flex flex-col h-full pt-24">
+        <!-- Views will be injected here -->
+    </main>
+
+    <!-- Footer -->
+    <footer id="main-footer" class="relative z-10 bg-[#000000] border-t border-white/10 pt-16 pb-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-12 mb-12">
+                <!-- Contact Us & Socials -->
+                <div>
+                    <h3 class="text-xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400">Contact Us</h3>
+                    <p class="text-gray-400 mb-6">Have questions? Reach out to our support team for assistance with your interview preparation.</p>
+                    <div class="flex gap-4">
+                        <a href="https://instagram.com" target="_blank" class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-pink-600 hover:text-white transition-all text-gray-400"><i data-lucide="instagram" class="w-5 h-5"></i></a>
+                        <a href="https://whatsapp.com" target="_blank" class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-green-500 hover:text-white transition-all text-gray-400"><i data-lucide="message-circle" class="w-5 h-5"></i></a>
+                        <a href="https://x.com" target="_blank" class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-black hover:border hover:border-white transition-all text-gray-400"><i data-lucide="twitter" class="w-5 h-5"></i></a>
+                        <a href="https://linkedin.com" target="_blank" class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-blue-600 hover:text-white transition-all text-gray-400"><i data-lucide="linkedin" class="w-5 h-5"></i></a>
+                    </div>
+                </div>
+
+                <!-- Quick Links -->
+                <div class="md:pl-12">
+                    <h3 class="text-xl font-bold mb-6 text-white">Quick Links</h3>
+                    <ul class="space-y-3">
+                        <li><a href="#" onclick="router.navigate('landing')" class="text-gray-400 hover:text-blue-400 transition-colors flex items-center gap-2"><i data-lucide="chevron-right" class="w-4 h-4"></i> Home</a></li>
+                        <li><a href="#" onclick="router.navigate('about')" class="text-gray-400 hover:text-blue-400 transition-colors flex items-center gap-2"><i data-lucide="chevron-right" class="w-4 h-4"></i> About Us</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-blue-400 transition-colors flex items-center gap-2"><i data-lucide="chevron-right" class="w-4 h-4"></i> Our Features</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-blue-400 transition-colors flex items-center gap-2"><i data-lucide="chevron-right" class="w-4 h-4"></i> Pricing</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-white/5 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+                <p class="text-gray-600 text-sm">© 2024 HireReady AI. All rights reserved.</p>
+                <div class="flex gap-6 text-sm text-gray-600">
+                    <a href="#" class="hover:text-gray-400">Privacy Policy</a>
+                    <a href="#" class="hover:text-gray-400">Terms of Service</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // --- 1. State Management & Constants ---
+        let apiKey = ""; // Set API Key here
+        const APP_ID = typeof __app_id !== 'undefined' ? __app_id : 'default';
+
+        let globalMediaStream = null;
+        let globalScreenStream = null;
+        let mediaRecorder = null;
+        let recordedChunks = [];
+
+        // --- DATA: COMPANY ROUNDS ---
+        const COMPANIES_DATA = {
+            "google": { name: "Google", domain: "google.com", rounds: ['recruiter_screen', 'resume_screen', 'online_coding', 'technical_phone', 'system_design_short', 'hr_offer'] },
+            "meta": { name: "Meta", domain: "meta.com", rounds: ['resume_screen', 'recruiter_screen', 'online_assessment', 'technical_screen', 'system_design', 'hiring_committee_review', 'hr_offer'] },
+            "apple": { name: "Apple", domain: "apple.com", rounds: ['resume_screen', 'recruiter_screen', 'technical_phone', 'coding_interview', 'system_design', 'hiring_manager_round', 'hr_offer'] },
+            "infosys": { name: "Infosys", domain: "infosys.com", rounds: ['resume_screen', 'aptitude_test', 'technical_interview', 'managerial_round', 'hr_offer'] },
+            "tcs": { name: "TCS", domain: "tcs.com", rounds: ['resume_screen', 'nqt_or_earlier_test', 'technical_interview', 'managerial_round', 'hr_offer'] },
+            "wipro": { name: "Wipro", domain: "wipro.com", rounds: ['resume_screen', 'online_assessment', 'technical_interview', 'managerial_or_team_round', 'hr_offer'] },
+            "accenture": { name: "Accenture", domain: "accenture.com", rounds: ['resume_screen', 'online_assessment', 'technical_interview', 'case_or_functional_round', 'managerial_round', 'hr_offer'] },
+            "ibm": { name: "IBM", domain: "ibm.com", rounds: ['resume_screen', 'online_assessment', 'technical_interview', 'system_design_or_architecture', 'hiring_manager_round', 'hr_offer'] },
+            "tesla": { name: "Tesla", domain: "tesla.com", rounds: ['resume_screen', 'recruiter_screen', 'technical_phone', 'system_design_or_domain_specific', 'hr_offer'] },
+            "amazon": { name: "Amazon", domain: "amazon.com", rounds: ['resume_screen', 'online_assessment', 'technical_phone', 'leadership_principles_round', 'hiring_manager_round', 'hr_offer'] },
+            "microsoft": { name: "Microsoft", domain: "microsoft.com", rounds: ['resume_screen', 'recruiter_screen', 'online_assessment', 'technical_phone', 'system_design', 'hiring_manager_round', 'hr_offer'] },
+            "netflix": { name: "Netflix", domain: "netflix.com", rounds: ['resume_screen', 'recruiter_screen', 'takehome_or_project_assign', 'technical_interview', 'culture_fit_interview', 'hiring_manager_round', 'hr_offer'] },
+            "openai": { name: "OpenAI", domain: "openai.com", rounds: ['resume_screen', 'recruiter_screen', 'takehome_or_research_assignment', 'technical_interview_loop', 'architecture_systems_round', 'hiring_committee_or_research_review', 'hr_offer'] },
+            "deepseek": { name: "DeepSeek", domain: "deepseek.com", rounds: ['resume_screen', 'recruiter_screen', 'technical_assignment_or_coding_test', 'technical_interview', 'hiring_manager_round', 'hr_offer'] }
+        };
+
+        const COMPANIES_LIST = Object.entries(COMPANIES_DATA).map(([key, val]) => ({
+            key: key,
+            name: val.name,
+            domain: val.domain
+        }));
+
+        // --- TEAM MEMBERS DATA (SPECIFIC ORDER) ---
+        const TEAM_MEMBERS = [
+            { 
+                name: "Swayam Khangaonkar", 
+                role: "AI Engineer", 
+                image: "team1.jpg", 
+                linkedin: "https://www.linkedin.com/in/swayam-khangaonkar-227bab345" 
+            },
+            { 
+                name: "Omkar S", 
+                role: "Product Design & Marketing", 
+                image: "team2.jpg", 
+                linkedin: "https://www.linkedin.com/in/omkar-shirvalkar-1941ab269?utm_source=share_via&utm_content=profile&utm_medium=member_android" 
+            },
+            { 
+                name: "Sarthak Chillal", 
+                role: "Frontend Developer", 
+                image: "team3.jpg", 
+                linkedin: "https://www.linkedin.com/in/sarthak-chillal-96069b303?utm_source=share_via&utm_content=profile&utm_medium=member_android" 
+            },
+            { 
+                name: "Aakash Iti", 
+                role: "Backend Developer", 
+                image: "team4.jpg", 
+                linkedin: "https://www.linkedin.com/in/akash-iti-7a389a310?utm_source=share_via&utm_content=profile&utm_medium=member_android" 
+            }
+        ];
+
+        // --- DATA: 150 QUESTIONS ---
+        const QUESTIONS_150 = Array.from({length: 150}, (_, i) => {
+            const titles = ["Two Sum", "Reverse Linked List", "Valid Parentheses", "Merge Intervals", "Group Anagrams", "Maximum Subarray", "Product of Array Except Self", "Valid Anagram", "Top K Frequent Elements", "Longest Consecutive Sequence"];
+            const cats = ["Array", "Linked List", "Stack", "Array", "Hashing", "DP", "Array", "Hashing", "Heap", "Hashing"];
+            return {
+                id: i + 1,
+                title: titles[i % titles.length] || `Practice Problem ${i+1}`,
+                diff: i < 50 ? "Easy" : i < 100 ? "Medium" : "Hard",
+                cat: cats[i % cats.length] || "General"
+            };
+        });
+
+        const store = {
+            user: null, 
+            view: 'landing', 
+            authMode: 'login', // 'login' or 'signup'
+            setupStep: 1,
+            completedQuestions: [1],
+            teamCarouselIndex: 0, 
+            interviewConfig: { 
+                mode: 'company', 
+                company: null, 
+                role: null, 
+                round: null,
+                question: null, 
+                userName: "", 
+                resumeText: "", 
+                programmingLanguage: "JavaScript",
+                interviewerLevel: 'Basic',
+                difficulty: 'Entry Level',
+                personality: 'Easy Going',
+                accent: 'US',
+                language: 'English',
+                micId: 'default',
+                camId: 'default',
+                screenShared: false,
+                mediaPermitted: false
+            },
+            interviewData: { 
+                transcript: [], 
+                isRecording: false, 
+                isSpeaking: false,
+                currentInput: "",
+                speechBuffer: "", 
+                currentCode: "// Write your solution here...\n",
+                questionCount: 0,
+                maxQuestions: 5, // Default
+                timeLeft: 300,
+                timerInterval: null,
+                latestAnalysis: null,
+                recordedVideoBlob: null
+            }
+        };
+
+        // --- 2. API Services ---
+        class GeminiService {
+            constructor() {
+                this.baseUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent";
+            }
+
+            async generateResponse(history, config, currentCount, userCode = null) {
+                if (!apiKey) return "Simulated response: Please ensure an API key is provided in the code to enable live AI. (Input hidden as requested).";
+
+                let context = "";
+                let instruction = "";
+                let isQuestionMode = config.mode === 'question';
+                
+                // Determine limits based on round
+                const isTechPhone = config.round?.toLowerCase().includes('technical phone');
+                const maxQ = isQuestionMode ? 1 : (isTechPhone ? 2 : 5);
+
+                // CHECK FOR END OF INTERVIEW (Not applicable for Question Mode single question)
+                if (!isQuestionMode && currentCount > maxQ) {
+                    return "Thank you for your time. I have gathered enough information. We will conclude the interview now. Please click 'End Session' to see your results.";
+                }
+
+                if (config.mode === 'company') {
+                    context = `Role: Interviewer at ${config.company.name}. Position: ${config.role}. Round: ${config.round}.`;
+                    
+                    if (isTechPhone) {
+                        instruction = `
+                            This is the 'Technical Phone' round. Total Questions: 2.
+                            Selected Language: ${config.programmingLanguage}.
+                            Ask a coding question solvable in 10 minutes using ${config.programmingLanguage}.
+                        `;
+                    } else if (config.round.toLowerCase().includes('resume') && config.resumeText) {
+                        instruction = `
+                            Resume Content: "${config.resumeText.substring(0, 1500)}..."
+                            Ask specifically about their resume/projects.
+                        `;
+                    } else {
+                        instruction = `Ask a relevant question for this specific round.`;
+                    }
+                } else {
+                    // QUESTION MODE
+                    context = `Role: Expert Technical Interviewer. Topic: ${config.question.title} (${config.question.cat}).`;
+                    instruction = `
+                        The user is solving "${config.question.title}". 
+                        If this is the start (History is empty): Introduce yourself briefly as the AI Interviewer, then clearly STATE the problem statement for "${config.question.title}" verbally so they understand the task.
+                        Then ask them to explain their approach before coding.
+                    `;
+                }
+
+                const promptText = `
+                    Act as a ${config.personality} interviewer. ${context}
+                    Candidate Name: ${config.userName}.
+                    Current Question Number in Sequence: ${currentCount} (out of ${maxQ}).
+                    
+                    CRITICAL BEHAVIORAL RULES:
+                    1. OFF-TOPIC: If the user speaks about unrelated topics (e.g., weather, sports, personal life, or random chatter), YOU MUST STRICTLY REPRIMAND THEM: "This is a professional interview simulation. Please focus on the question at hand." DO NOT answer the off-topic query.
+                    2. CLARIFICATION: If the user asks "What was the question?", "Can you repeat?", "What is this?", or asks for clarification on the specific technical problem, YOU MUST EXPLAIN IT CLEARLY again. Do not move to the next question.
+                    3. SKIPPING: If the user says "Next question", "Skip", or "I don't know", YOU MUST WARN THEM: "Skipping this question will result in a zero score for this section. This simulation is designed to help you learn. Are you sure you want to proceed?" 
+                       - Only if the user confirms (e.g., "Yes, skip"), then move to the next question (or end if it's the last one).
+                    4. HONESTY: Be professional but strict. Do not be overly praise-worthy if the answer is mediocre.
+                    5. FLOW CONTROL: 
+                       - If you are satisfied with the user's answer and are moving to the NEXT question, start your response with "[[NEXT]]".
+                       - If you are asking the FIRST question, start with "[[NEXT]]".
+                       - If you are just clarifying or scolding, DO NOT use "[[NEXT]]".
+                    
+                    INSTRUCTIONS:
+                    1. Keep response CONCISE (max 2-3 sentences usually, unless explaining a problem).
+                    2. Be interactive.
+                    3. ${instruction}
+                    4. CODE CONTEXT: ${userCode ? `User code:\n${userCode}\nAnalyze for correctness/efficiency.` : "No code yet."}
+                    
+                    Chat History:
+                    ${history.map(h => `${h.speaker}: ${h.text}`).join('\n')}
+                `;
+
+                try {
+                    const response = await fetch(`${this.baseUrl}?key=${apiKey}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ contents: [{ parts: [{ text: promptText }] }] })
+                    });
+                    const data = await response.json();
+                    return data.candidates?.[0]?.content?.parts?.[0]?.text || "Connection error.";
+                } catch (error) {
+                    console.error("Gemini Error:", error);
+                    return "I'm having trouble connecting. Please check your connection.";
+                }
+            }
+
+            async analyzePerformance(history, config) {
+                if (!apiKey) return { score: 75, resume_score: 0, feedback: "Simulated analysis (No API Key).", improvement_plan: ["Add API Key"] };
+                
+                const isResumeRound = config.round?.toLowerCase().includes('resume');
+                const isTechPhone = config.round?.toLowerCase().includes('technical phone');
+
+                const promptText = `
+                    Analyze this interview for ${config.userName}.
+                    Context: ${config.mode === 'company' ? `${config.company.name} - ${config.round}` : `Problem: ${config.question.title}`}.
+                    
+                    ${isResumeRound ? `RESUME CONTEXT: ${config.resumeText ? config.resumeText.substring(0, 1000) : "No resume text"}` : ""}
+                    ${isTechPhone ? `NOTE: Technical Phone round. Focus on code correctness in ${config.programmingLanguage}.` : ""}
+
+                    TASK: Provide a BRUTALLY HONEST and CRITICAL analysis. Do NOT sugarcoat failures. 
+                    - If they went off-topic, mention it negatively.
+                    - If they skipped questions, score them 0 for that part.
+                    - If the code was wrong, say it.
+                    
+                    Address the "Feedback" directly to ${config.userName}.
+                    
+                    Transcript:
+                    ${history.map(h => `${h.speaker}: ${h.text}`).join('\n')}
+                    
+                    Return valid JSON only. Do not wrap in markdown code blocks. Structure:
+                    {
+                        "score": number(0-100),
+                        "resume_score": ${isResumeRound ? "number(0-100)" : "null"},
+                        "feedback": "string (long paragraph, honest and critical)",
+                        "strengths": ["string", "string"],
+                        "weaknesses": ["string", "string"],
+                        "improvement_plan": ["string", "string", "string"]
+                    }
+                `;
+
+                try {
+                    const response = await fetch(`${this.baseUrl}?key=${apiKey}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ contents: [{ parts: [{ text: promptText }] }], generationConfig: { responseMimeType: "application/json" } })
+                    });
+                    const data = await response.json();
+                    let text = data.candidates[0].content.parts[0].text;
+                    
+                    // Robust JSON Parsing
+                    const jsonMatch = text.match(/\{[\s\S]*\}/);
+                    if (jsonMatch) {
+                        return JSON.parse(jsonMatch[0]);
+                    } else {
+                        throw new Error("Invalid JSON format");
+                    }
+                } catch (e) {
+                    console.error("Analysis Parsing Error:", e);
+                    return { 
+                        score: 0, 
+                        resume_score: 0, 
+                        feedback: "Analysis failed to generate. Please ensure the transcript is valid and the API key is active. (Check console for details)", 
+                        improvement_plan: ["Retry Interview", "Check Network"] 
+                    };
+                }
+            }
+        }
+
+        const gemini = new GeminiService();
+
+        // Speech Service - IMPROVED ROBUST VERSION
+        const speech = {
+            synthesis: window.speechSynthesis,
+            recognition: window.webkitSpeechRecognition ? new webkitSpeechRecognition() : null,
+            finalTranscriptBuffer: "", // To store finalized text across pauses
+            
+            speak: (text, onStart, onEnd) => {
+                if (!speech.synthesis) return;
+                speech.synthesis.cancel();
+                // Strip markdown/special chars for speaking
+                const cleanText = text.replace(/\[\[.*?\]\]/g, '').replace(/\*/g, '').trim();
+                const utterance = new SpeechSynthesisUtterance(cleanText);
+                const voices = speech.synthesis.getVoices();
+                utterance.voice = voices.find(v => v.lang.includes(store.interviewConfig.accent === 'IN' ? 'IN' : 'US')) || voices[0];
+                utterance.rate = 1.1;
+                utterance.onstart = onStart;
+                utterance.onend = onEnd;
+                speech.synthesis.speak(utterance);
+            },
+
+            startListening: (onResult) => {
+                if (!speech.recognition) return alert("Use Chrome for speech.");
+                
+                speech.recognition.continuous = true;
+                speech.recognition.interimResults = true;
+                speech.finalTranscriptBuffer = ""; // Reset for new session
+                
+                speech.recognition.onresult = (event) => {
+                    let interim = "";
+                    let newFinal = "";
+
+                    // Iterate through results
+                    for (let i = event.resultIndex; i < event.results.length; ++i) {
+                        if (event.results[i].isFinal) {
+                            newFinal += event.results[i][0].transcript;
+                        } else {
+                            interim += event.results[i][0].transcript;
+                        }
+                    }
+                    
+                    // Accumulate final results in our persistent buffer
+                    speech.finalTranscriptBuffer += newFinal;
+                    
+                    // Send full combined text (Final Buffer + Current Interim) to UI
+                    onResult(speech.finalTranscriptBuffer + " " + interim);
+                };
+
+                speech.recognition.onend = () => {
+                    // Auto-restart if we are supposed to be recording but it stopped (e.g. silence)
+                    if (store.interviewData.isRecording) {
+                        try { speech.recognition.start(); } catch(e) {}
+                    }
+                };
+
+                try { speech.recognition.start(); } catch(e){ console.error(e); }
+            },
+            stopListening: () => { 
+                if(speech.recognition) {
+                    speech.recognition.onend = null; // Prevent auto-restart
+                    speech.recognition.stop(); 
+                }
+            }
+        };
+
+        // --- 4. UI Components ---
+        const Components = {
+            Button: (text, onClick, variant = 'primary', id='', disabled=false) => {
+                const colors = variant === 'primary' 
+                    ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white shadow-lg shadow-blue-500/30'
+                    : 'bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/20 text-white';
+                return `<button id="${id}" onclick="${onClick}" ${disabled ? 'disabled' : ''} class="px-6 py-2 rounded-lg font-medium transition-all duration-300 flex items-center justify-center gap-2 ${colors} ${disabled ? 'opacity-50 cursor-not-allowed' : 'active:scale-95'}">${text}</button>`;
+            },
+            ChatMessage: (role, text) => `
+                <div class="flex flex-col ${role === 'AI' ? 'items-start' : 'items-end'} animate-in fade-in slide-in-from-bottom-2 mb-4 shrink-0">
+                    <div class="text-[10px] text-gray-500 mb-1 px-2 uppercase tracking-wider">${role === 'AI' ? 'Interviewer' : 'You'}</div>
+                    <div class="chat-bubble ${role === 'AI' ? 'ai' : 'user'} shadow-lg">
+                        ${marked.parse(text)}
+                    </div>
+                </div>
+            `,
+             Select: (id, label, options, selectedValue) => `
+                <div class="mb-4 relative">
+                    <label class="block text-gray-400 text-xs font-bold mb-2 uppercase">${label}</label>
+                    <div class="relative">
+                        <select id="${id}" class="w-full bg-black/40 border border-white/10 rounded-lg p-3 text-white focus:border-blue-500 focus:outline-none appearance-none pr-10">
+                            ${options.map(o => `<option value="${o.value}" ${o.value === selectedValue ? 'selected' : ''}>${o.label}</option>`).join('')}
+                        </select>
+                        <div class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                            <i data-lucide="chevron-down" class="w-5 h-5"></i>
+                        </div>
+                    </div>
+                </div>
+            `
+        };
+
+        // --- 5. Action Handlers ---
+        const router = {
+            navigate: (view) => {
+                store.view = view;
+                renderApp();
+                window.scrollTo(0, 0);
+            }
+        };
+
+        const actions = {
+            // New toggle for Login/Signup
+            toggleAuthMode: (mode) => {
+                store.authMode = mode;
+                renderApp();
+            },
+            login: () => {
+                const u = document.getElementById('username').value;
+                const p = document.getElementById('password').value;
+                if ((u === 'admin' && p === 'admin123') || (u === 'swayam' && p === '123456')) {
+                    store.user = { username: u };
+                    router.navigate('dashboard');
+                } else {
+                    alert('Invalid credentials');
+                }
+            },
+            signup: () => {
+                const e = document.getElementById('signup-email').value;
+                const u = document.getElementById('signup-username').value;
+                const p = document.getElementById('signup-password').value;
+                
+                if(e && u && p) {
+                    alert('Account Created Successfully (Mock)! Please Login.');
+                    store.authMode = 'login';
+                    renderApp();
+                } else {
+                    alert('Please fill all fields');
+                }
+            },
+            logout: () => {
+                store.user = null;
+                router.navigate('landing');
+            },
+            startCompanyPractice: () => {
+                store.interviewConfig.mode = 'company';
+                store.setupStep = 1;
+                router.navigate('setup');
+            },
+            startQuestionsPractice: () => {
+                store.interviewConfig.mode = 'question';
+                router.navigate('questions');
+            },
+            selectCompany: (key) => {
+                store.interviewConfig.company = COMPANIES_DATA[key];
+                actions.nextSetupStep();
+            },
+            handleFile: (input) => {
+                const file = input.files[0];
+                if (file) {
+                    document.getElementById('file-name').innerText = file.name;
+                    document.getElementById('file-name').classList.add('text-green-400');
+                    const reader = new FileReader();
+                    reader.onload = (e) => { store.interviewConfig.resumeText = e.target.result; };
+                    reader.readAsText(file);
+                }
+            },
+            nextSetupStep: () => {
+                if (store.setupStep === 2) {
+                     store.interviewConfig.role = document.getElementById('setup-role').value;
+                     store.interviewConfig.round = document.getElementById('setup-round').value;
+                }
+                if (store.setupStep === 3) {
+                     store.interviewConfig.interviewerLevel = document.getElementById('setup-interviewer').value;
+                     store.interviewConfig.difficulty = document.getElementById('setup-difficulty').value;
+                     store.interviewConfig.personality = document.getElementById('setup-personality').value;
+                     store.interviewConfig.accent = document.getElementById('setup-accent').value;
+                     const langEl = document.getElementById('setup-language-prog');
+                     if(langEl) store.interviewConfig.programmingLanguage = langEl.value;
+                }
+                if (store.setupStep === 4) {
+                    const nameInput = document.getElementById('setup-username').value;
+                    if(!nameInput.trim()) return alert("Please enter your name.");
+                    store.interviewConfig.userName = nameInput;
+                    
+                    if (store.interviewConfig.round.toLowerCase().includes('resume') && !store.interviewConfig.resumeText) {
+                        return alert("Please upload a resume for the Resume Screen round.");
+                    }
+                }
+                store.setupStep++;
+                renderApp();
+            },
+            prevSetupStep: () => {
+                store.setupStep--;
+                renderApp();
+            },
+            // Toggle Media: Handles Camera and Mic
+            toggleMedia: async (checkbox) => {
+                if(checkbox.checked) {
+                    try {
+                        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                        globalMediaStream = stream;
+                        const video = document.getElementById('preview-video');
+                        if(video) { video.srcObject = stream; video.classList.remove('hidden'); }
+                        document.getElementById('preview-placeholder').classList.add('hidden');
+                        store.interviewConfig.mediaPermitted = true;
+                        actions.checkReady();
+                    } catch(e) { 
+                        console.error(e);
+                        alert("Camera Access Denied or Not Available"); 
+                        checkbox.checked = false; 
+                    }
+                } else {
+                    store.interviewConfig.mediaPermitted = false;
+                    actions.checkReady();
+                    if(globalMediaStream) globalMediaStream.getTracks().forEach(t => t.stop());
+                    document.getElementById('preview-video').classList.add('hidden');
+                    document.getElementById('preview-placeholder').classList.remove('hidden');
+                }
+            },
+            // Toggle Screen: Handles Screen Sharing
+            toggleScreen: async (checkbox) => {
+                if(checkbox.checked) {
+                    try {
+                        const stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
+                        globalScreenStream = stream;
+                        store.interviewConfig.screenShared = true;
+                        
+                        // Handle user stopping share via browser UI
+                        stream.getVideoTracks()[0].onended = () => {
+                            checkbox.checked = false;
+                            store.interviewConfig.screenShared = false;
+                            actions.checkReady();
+                        };
+                        
+                        actions.checkReady();
+                    } catch(e) { 
+                        console.error(e);
+                        checkbox.checked = false; 
+                    }
+                } else {
+                    if(globalScreenStream) globalScreenStream.getTracks().forEach(t => t.stop());
+                    store.interviewConfig.screenShared = false;
+                    actions.checkReady();
+                }
+            },
+            checkReady: () => {
+                const btn = document.getElementById('start-session-btn');
+                if(btn) {
+                    // Start enabled if Media is on AND Screen is shared
+                    const ready = store.interviewConfig.mediaPermitted && store.interviewConfig.screenShared;
+                    btn.disabled = !ready;
+                    if(ready) {
+                        btn.classList.remove('opacity-50', 'cursor-not-allowed');
+                        btn.classList.add('active:scale-95');
+                    } else {
+                        btn.classList.add('opacity-50', 'cursor-not-allowed');
+                        btn.classList.remove('active:scale-95');
+                    }
+                }
+            },
+            // --- TEAM CAROUSEL ACTIONS ---
+            nextTeamMember: () => {
+                if (store.teamCarouselIndex < TEAM_MEMBERS.length - 1) {
+                    store.teamCarouselIndex++;
+                    renderApp(); // Re-render to update carousel state
+                }
+            },
+            prevTeamMember: () => {
+                if (store.teamCarouselIndex > 0) {
+                    store.teamCarouselIndex--;
+                    renderApp();
+                }
+            },
+            setTeamMember: (index) => {
+                store.teamCarouselIndex = index;
+                renderApp();
+            },
+            // --- TOP 150 Question Specific Actions ---
+            initQuestionSetup: (id) => {
+                const q = QUESTIONS_150.find(q => q.id === id);
+                store.interviewConfig.question = q;
+                store.interviewConfig.mode = 'question';
+                store.interviewConfig.round = "Technical - " + q.title;
+                
+                // Reset setup details
+                store.interviewConfig.userName = "";
+                store.interviewConfig.mediaPermitted = false;
+                store.interviewConfig.screenShared = false;
+                
+                router.navigate('question_setup');
+            },
+            confirmQuestionSetup: () => {
+                const nameInput = document.getElementById('q-setup-username').value;
+                if(!nameInput.trim()) return alert("Please enter your name.");
+                store.interviewConfig.userName = nameInput;
+
+                store.interviewData = { 
+                    transcript: [], 
+                    isRecording: false, 
+                    currentCode: `// Solution for ${store.interviewConfig.question.title}\n// Lang: JS\n\nfunction solve() {\n  \n}`,
+                    timeLeft: 1200, 
+                    questionCount: 0,
+                    maxQuestions: 1
+                };
+                router.navigate('interview');
+                setTimeout(actions.startInterviewSession, 500);
+            },
+            // ------------------------------------------
+
+            startInterviewSession: async () => {
+                store.interviewData.transcript = []; 
+                store.interviewData.questionCount = 0; 
+                
+                const isTechPhone = store.interviewConfig.round?.toLowerCase().includes('technical phone');
+                store.interviewData.maxQuestions = store.interviewConfig.mode === 'question' ? 1 : (isTechPhone ? 2 : 5);
+                store.interviewData.timeLeft = isTechPhone ? 600 : (store.interviewConfig.round.toLowerCase().includes('technical') ? 1200 : 300);
+
+                // Recording Setup (Merge Streams for Picture-in-Picture effect ideally, but simply recording screen here often captures audio if system audio selected)
+                // For better recording, we try to capture the mic from mediaStream and video from screenStream
+                if (globalScreenStream && globalMediaStream) {
+                    const tracks = [...globalScreenStream.getVideoTracks()];
+                    // Add mic audio
+                    const audioTracks = globalMediaStream.getAudioTracks();
+                    if(audioTracks.length > 0) tracks.push(audioTracks[0]);
+                    
+                    const combinedStream = new MediaStream(tracks);
+                    recordedChunks = [];
+                    mediaRecorder = new MediaRecorder(combinedStream);
+                    mediaRecorder.ondataavailable = e => { if(e.data.size>0) recordedChunks.push(e.data); };
+                    mediaRecorder.start();
+                }
+
+                // Timer
+                if (store.interviewData.timerInterval) clearInterval(store.interviewData.timerInterval);
+                store.interviewData.timerInterval = setInterval(() => {
+                    store.interviewData.timeLeft--;
+                    const m = Math.floor(store.interviewData.timeLeft / 60);
+                    const s = store.interviewData.timeLeft % 60;
+                    const el = document.getElementById('timer-display');
+                    if(el) el.innerText = `${m}:${s < 10 ? '0' : ''}${s}`;
+                    if (store.interviewData.timeLeft <= 0) actions.endInterview(true);
+                }, 1000);
+
+                // Start AI: Pass count 0 to trigger introduction
+                const greeting = await gemini.generateResponse([], store.interviewConfig, 0);
+                actions.speakAI(greeting);
+            },
+            toggleAnswer: () => {
+                if (store.interviewData.isRecording) {
+                    // STOP Recording
+                    store.interviewData.isRecording = false;
+                    speech.stopListening();
+                    
+                    // Hide Visualizer
+                    document.getElementById('voice-visualizer').classList.add('hidden');
+                    
+                    // Submit
+                    actions.submitTranscript(store.interviewData.currentInput);
+                    store.interviewData.currentInput = "";
+                    
+                    // UI Reset
+                    document.getElementById('answer-btn').classList.remove('bg-red-600', 'animate-pulse');
+                    document.getElementById('answer-btn').classList.add('bg-blue-600');
+                    document.getElementById('answer-btn').innerHTML = `<i data-lucide="mic"></i> Start Answer`;
+                } else {
+                    // START Recording
+                    store.interviewData.isRecording = true;
+                    store.interviewData.currentInput = ""; // Clear undefined/old text
+                    
+                    // Show Visualizer
+                    document.getElementById('voice-visualizer').classList.remove('hidden');
+
+                    // Pass combined text directly to callback
+                    speech.startListening((fullText) => {
+                        store.interviewData.currentInput = fullText;
+                        const el = document.getElementById('live-typing');
+                        if(el) { 
+                            el.innerText = store.interviewData.currentInput; 
+                            el.classList.remove('hidden'); 
+                        }
+                    });
+                    
+                    // UI Set
+                    document.getElementById('answer-btn').classList.remove('bg-blue-600');
+                    document.getElementById('answer-btn').classList.add('bg-red-600', 'animate-pulse');
+                    document.getElementById('answer-btn').innerHTML = `<i data-lucide="square"></i> End Answer`;
+                }
+            },
+            submitTranscript: async (text) => {
+                if(!text || !text.trim()) return;
+                actions.addTranscript('User', text);
+                
+                // If question mode, force strict question count context
+                const countToSend = store.interviewConfig.mode === 'question' ? 1 : store.interviewData.questionCount;
+
+                const response = await gemini.generateResponse(store.interviewData.transcript, store.interviewConfig, countToSend, store.interviewData.currentCode);
+                
+                actions.speakAI(response);
+            },
+            submitCode: () => {
+                 actions.addTranscript('User', "[Submitted Code for Review]");
+                 actions.submitTranscript("I have submitted my code. Please review it.");
+            },
+            addTranscript: (speaker, text) => {
+                store.interviewData.transcript.push({ speaker, text });
+                renderApp();
+            },
+            speakAI: (text) => {
+                // Check for Smart Flow Control Token
+                if (text.includes('[[NEXT]]')) {
+                    store.interviewData.questionCount++;
+                    text = text.replace('[[NEXT]]', '').trim(); 
+                    
+                    if (store.interviewConfig.mode !== 'question' && store.interviewData.questionCount > store.interviewData.maxQuestions) {
+                        text = "That concludes our interview session. I have gathered all the necessary information. Let's review your performance.";
+                        actions.addTranscript('AI', text);
+                        speech.speak(text);
+                        setTimeout(() => actions.endInterview(), 4000);
+                        return;
+                    }
+                }
+
+                actions.addTranscript('AI', text);
+                speech.speak(text);
+            },
+            endInterview: async () => {
+                window.speechSynthesis.cancel();
+                speech.stopListening();
+                if(mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+                
+                clearInterval(store.interviewData.timerInterval);
+                const btn = document.querySelector('button[onclick="actions.endInterview()"]');
+                if(btn) btn.innerText = "Analyzing...";
+                
+                setTimeout(async () => {
+                    if(recordedChunks.length > 0) {
+                        store.interviewData.recordedVideoBlob = new Blob(recordedChunks, { type: 'video/webm' });
+                    }
+                    const analysis = await gemini.analyzePerformance(store.interviewData.transcript, store.interviewConfig);
+                    store.interviewData.latestAnalysis = analysis;
+                    router.navigate('results');
+                }, 1000);
+            },
+            playRecording: () => {
+                const blob = store.interviewData.recordedVideoBlob;
+                if(!blob) return alert("No recording found.");
+                const url = URL.createObjectURL(blob);
+                const modal = document.getElementById('video-modal');
+                const vid = document.getElementById('playback-video');
+                vid.src = url;
+                modal.classList.remove('hidden');
+            },
+            closeVideo: () => {
+                document.getElementById('video-modal').classList.add('hidden');
+                const vid = document.getElementById('playback-video');
+                vid.pause();
+                vid.src = ""; // Release memory
+            },
+            downloadPlan: () => {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                const analysis = store.interviewData.latestAnalysis;
+                const userName = store.interviewConfig.userName;
+
+                doc.setFontSize(22); doc.text("HireReady AI - Performance Report", 20, 20);
+                doc.setFontSize(12); doc.text(`Candidate: ${userName}`, 20, 30);
+                doc.text(`Date: ${new Date().toLocaleDateString()}`, 20, 36);
+                
+                doc.setFontSize(14); doc.text(`Score: ${analysis.score}/100`, 20, 50);
+                
+                let y = 60;
+                doc.setFontSize(16); doc.text("Honest Feedback", 20, y); y+=10;
+                doc.setFontSize(11);
+                
+                const feedbackLines = doc.splitTextToSize(analysis.feedback, 170);
+                doc.text(feedbackLines, 20, y);
+                y += (feedbackLines.length * 6) + 10;
+
+                doc.setFontSize(16); doc.text("Improvement Plan", 20, y); y+=10;
+                doc.setFontSize(11);
+                if (analysis && analysis.improvement_plan) {
+                    analysis.improvement_plan.forEach((item, i) => {
+                        const text = `${i+1}. ${item}`;
+                        const lines = doc.splitTextToSize(text, 170);
+                        if (y + (lines.length * 6) > 280) { doc.addPage(); y = 20; }
+                        doc.text(lines, 20, y);
+                        y += (lines.length * 6) + 5;
+                    });
+                }
+
+                doc.save(`${userName}_Performance_Report.pdf`);
+            },
+            // --- NEW: Demo Video Actions ---
+            openDemoVideo: () => {
+                const modal = document.getElementById('demo-modal');
+                const vid = document.getElementById('demo-video');
+                if (modal) modal.classList.remove('hidden');
+                if (vid) vid.play();
+            },
+            closeDemoVideo: () => {
+                const modal = document.getElementById('demo-modal');
+                const vid = document.getElementById('demo-video');
+                if (modal) modal.classList.add('hidden');
+                if (vid) {
+                    vid.pause();
+                    vid.currentTime = 0;
+                }
+            },
+            // --- NEW: Initialize Scroll Observer ---
+            initScrollObserver: () => {
+                const observerOptions = {
+                    root: null,
+                    rootMargin: '0px',
+                    threshold: 0.6 // Slightly higher threshold to ensure better transitions
+                };
+
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            const img = document.getElementById('sticky-image');
+                            const id = entry.target.id;
+                            
+                            // 1. Text Animation Logic
+                            entry.target.classList.add('active');
+
+                            // 2. Image Switch Logic
+                            let newSrc = '';
+                            switch(id) {
+                                case 'scroll-block-1': newSrc = 'companyt.jpg'; break;
+                                case 'scroll-block-2': newSrc = 'questiont.jpg'; break;
+                                case 'scroll-block-3': newSrc = 'rank.jpg'; break;
+                                case 'scroll-block-4': newSrc = 'custo.jpg'; break;
+                            }
+
+                            if (img && newSrc && !img.src.includes(newSrc)) {
+                                img.style.opacity = '0'; // Fade out
+                                setTimeout(() => {
+                                    img.src = newSrc;
+                                    img.onload = () => { img.style.opacity = '1'; }; // Fade in
+                                    // Fallback if images don't exist
+                                    img.onerror = () => { 
+                                        img.src = 'https://via.placeholder.com/600x400?text=' + newSrc; 
+                                        img.style.opacity = '1';
+                                    };
+                                }, 300); // Snappy transition 
+                            }
+                        } else {
+                            // Optional: Remove active class if you want animation to re-trigger when scrolling back up
+                            entry.target.classList.remove('active');
+                        }
+                    });
+                }, observerOptions);
+
+                // Wait for DOM to be ready
+                setTimeout(() => {
+                    ['scroll-block-1', 'scroll-block-2', 'scroll-block-3', 'scroll-block-4'].forEach(id => {
+                        const el = document.getElementById(id);
+                        if (el) observer.observe(el);
+                    });
+                }, 100);
+            },
+            // --- NEW: Initialize Timeline Observer ---
+            initScrollAnimations: () => {
+                const handleScroll = () => {
+                    const timelines = document.querySelectorAll('.timeline-container');
+                    const windowHeight = window.innerHeight;
+                    
+                    timelines.forEach(timeline => {
+                        const bar = timeline.querySelector('.timeline-progress');
+                        if (!bar) return;
+                        
+                        const rect = timeline.getBoundingClientRect();
+                        const elementTop = rect.top;
+                        const elementHeight = rect.height;
+                        
+                        // Calculate percentage:
+                        // Start filling when top of element is at 75% of viewport height
+                        // Finish filling when bottom of element is at 75% of viewport height (or slightly earlier)
+                        
+                        const startPoint = windowHeight * 0.8; 
+                        
+                        // How many pixels of the element are above the start point?
+                        const pixelsPastStart = startPoint - elementTop;
+                        
+                        let percent = (pixelsPastStart / elementHeight) * 100;
+                        
+                        // Clamp between 0 and 100
+                        percent = Math.max(0, Math.min(100, percent));
+                        
+                        bar.style.height = `${percent}%`;
+                    });
+                };
+
+                window.addEventListener('scroll', handleScroll);
+                // Initial call
+                handleScroll();
+            }
+        };
+
+        // --- 6. Render Functions ---
+
+        function renderAuth() {
+            // Updated Auth Page Structure based on User Request
+            return `
+                <div class="h-screen flex items-center justify-center relative overflow-hidden bg-black">
+                    <!-- Back To Home Button -->
+                    <button onclick="router.navigate('landing')" class="absolute top-8 left-8 text-gray-400 hover:text-white flex gap-2 items-center z-50 transition-colors">
+                        <i data-lucide="arrow-left" class="w-5 h-5"></i> Back to Home
+                    </button>
+
+                    <div class="flex gap-6 items-start">
+                        <!-- Main Login/Signup Frame -->
+                        <div class="glass-panel p-8 rounded-2xl w-full max-w-md relative z-10 border border-white/10 shadow-2xl">
+                            
+                            <!-- Header -->
+                            <h2 class="text-3xl font-bold text-purple-500 mb-6 text-center">Welcome User</h2>
+                            
+                            <!-- Toggle Buttons (Side by Side) -->
+                            <div class="flex gap-4 mb-6">
+                                <button onclick="actions.toggleAuthMode('login')" class="flex-1 py-2 rounded-lg font-bold transition-all ${store.authMode === 'login' ? 'bg-purple-600 text-white shadow-lg shadow-purple-900/40' : 'bg-white/5 text-gray-400 hover:bg-white/10'}">Login</button>
+                                <button onclick="actions.toggleAuthMode('signup')" class="flex-1 py-2 rounded-lg font-bold transition-all ${store.authMode === 'signup' ? 'bg-purple-600 text-white shadow-lg shadow-purple-900/40' : 'bg-white/5 text-gray-400 hover:bg-white/10'}">Sign Up</button>
+                            </div>
+
+                            <!-- Content Area -->
+                            <div class="space-y-4">
+                                ${store.authMode === 'login' ? `
+                                    <!-- Login Form -->
+                                    <div class="animate-in fade-in slide-in-from-left-4 duration-300">
+                                        <div class="mb-4">
+                                            <label class="block text-xs text-gray-400 uppercase font-bold mb-1">Username</label>
+                                            <input id="username" type="text" value="swayam" class="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white focus:border-purple-500 outline-none transition-colors">
+                                        </div>
+                                        <div class="mb-6">
+                                            <label class="block text-xs text-gray-400 uppercase font-bold mb-1">Password</label>
+                                            <input id="password" type="password" value="123456" class="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white focus:border-purple-500 outline-none transition-colors">
+                                        </div>
+                                        <button onclick="actions.login()" class="w-full py-3 rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold shadow-lg shadow-blue-500/20 active:scale-95 transition-all">
+                                            Login
+                                        </button>
+                                    </div>
+                                ` : `
+                                    <!-- Sign Up Form -->
+                                    <div class="animate-in fade-in slide-in-from-right-4 duration-300">
+                                        <div class="mb-4">
+                                            <label class="block text-xs text-gray-400 uppercase font-bold mb-1">Email</label>
+                                            <input id="signup-email" type="email" placeholder="you@example.com" class="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white focus:border-purple-500 outline-none transition-colors">
+                                        </div>
+                                        <div class="mb-4">
+                                            <label class="block text-xs text-gray-400 uppercase font-bold mb-1">Username</label>
+                                            <input id="signup-username" type="text" placeholder="Choose a username" class="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white focus:border-purple-500 outline-none transition-colors">
+                                        </div>
+                                        <div class="mb-6">
+                                            <label class="block text-xs text-gray-400 uppercase font-bold mb-1">Create Password</label>
+                                            <input id="signup-password" type="password" placeholder="••••••••" class="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white focus:border-purple-500 outline-none transition-colors">
+                                        </div>
+                                        <button onclick="actions.signup()" class="w-full py-3 rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold shadow-lg shadow-purple-500/20 active:scale-95 transition-all">
+                                            Create Account
+                                        </button>
+                                    </div>
+                                `}
+                            </div>
+                        </div>
+
+                        <!-- Right Info Frame -->
+                        <div class="glass-panel p-8 rounded-2xl w-96 border border-white/10 shadow-xl self-center hidden md:block">
+                             <div class="text-white font-bold text-base mb-4 leading-tight">(round 2 judge testing credentials)</div>
+                             <div class="text-gray-300 text-sm uppercase font-bold mb-3 tracking-widest">Login Using This</div>
+                             <div class="space-y-3 font-mono text-sm text-gray-200 bg-black/40 p-4 rounded-lg border border-white/5">
+                                 <div>username : swayam</div>
+                                 <div>password : 123456</div>
+                             </div>
+                        </div>
+                    </div>
+                </div>`;
+        }
+
+        function renderDashboard() {
+            return `
+                <div class="flex h-screen overflow-hidden bg-black pt-16"> <!-- Added pt-16 to account for fixed navbar -->
+                    <div class="w-64 bg-[#0f0f13] border-r border-white/10 flex flex-col p-4">
+                        <div class="flex items-center gap-2 mb-8 px-2"><div class="w-8 h-8 bg-gradient-to-tr from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold">H</div><span class="font-bold text-lg">HireReady</span></div>
+                        <nav class="flex-1 space-y-2">
+                            <button onclick="actions.startCompanyPractice()" class="w-full text-left px-4 py-3 rounded-xl bg-gradient-to-r from-blue-600/20 to-transparent border border-blue-500/30 text-blue-200 hover:bg-blue-600/30 transition-all group">
+                                <div class="flex items-center gap-3"><i data-lucide="briefcase" class="w-5 h-5 text-blue-400"></i><div><div class="font-bold">Companies</div><div class="text-[10px] text-gray-400">Simulate Rounds</div></div></div>
+                            </button>
+                            <button onclick="actions.startQuestionsPractice()" class="w-full text-left px-4 py-3 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 transition-all group">
+                                <div class="flex items-center gap-3"><i data-lucide="code-2" class="w-5 h-5 text-purple-400"></i><div><div class="font-bold">150 Questions</div><div class="text-[10px] text-gray-400">DSA Mastery</div></div></div>
+                            </button>
+                             <!-- Pricing Removed as requested -->
+                        </nav>
+                        <div class="mt-auto pt-4 border-t border-white/10"><div class="flex items-center gap-3 p-2 rounded-lg bg-white/5"><div class="w-8 h-8 rounded-full bg-yellow-500 flex items-center justify-center text-black font-bold">A</div><div class="flex-1 overflow-hidden"><div class="text-sm font-bold truncate">${store.user ? store.user.username : 'User'}</div><div class="text-[10px] text-gray-400">Pro Plan</div></div><i data-lucide="log-out" class="w-4 h-4 text-gray-400 cursor-pointer hover:text-white" onclick="actions.logout()"></i></div></div>
+                    </div>
+                    <div class="flex-1 bg-black/80 relative overflow-hidden flex flex-col">
+                        <div class="h-16 border-b border-white/10 flex items-center justify-between px-8"><h2 class="text-xl font-bold">Dashboard</h2><div class="flex gap-4"><div class="bg-white/5 px-3 py-1 rounded-full text-xs flex items-center gap-2 border border-white/10"><span class="w-2 h-2 rounded-full bg-green-500"></span> Online</div></div></div>
+                        <div class="p-8 overflow-y-auto">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                                <div class="glass-panel p-6 rounded-2xl"><div class="text-gray-400 text-xs uppercase font-bold mb-2">Questions Solved</div><div class="text-4xl font-bold text-blue-400">${store.completedQuestions.length - 1}</div></div>
+                                <div class="glass-panel p-6 rounded-2xl"><div class="text-gray-400 text-xs uppercase font-bold mb-2">Mock Interviews</div><div class="text-4xl font-bold text-purple-400">0</div></div>
+                                <div class="glass-panel p-6 rounded-2xl"><div class="text-gray-400 text-xs uppercase font-bold mb-2">Avg Score</div><div class="text-4xl font-bold text-green-400">-</div></div>
+                            </div>
+                            <h3 class="font-bold text-lg mb-4">Quick Actions</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="p-6 rounded-2xl bg-gradient-to-br from-blue-900/40 to-black border border-blue-500/20 hover:border-blue-500/50 transition cursor-pointer" onclick="actions.startCompanyPractice()"><div class="w-12 h-12 rounded-lg bg-blue-600 flex items-center justify-center mb-4"><i data-lucide="building" class="text-white"></i></div><h4 class="font-bold text-lg">Practice by Company</h4><p class="text-sm text-gray-400 mt-2">Target specific rounds for Google, Meta, etc.</p></div>
+                                <div class="p-6 rounded-2xl bg-gradient-to-br from-purple-900/40 to-black border border-purple-500/20 hover:border-purple-500/50 transition cursor-pointer" onclick="actions.startQuestionsPractice()"><div class="w-12 h-12 rounded-lg bg-purple-600 flex items-center justify-center mb-4"><i data-lucide="code" class="text-white"></i></div><h4 class="font-bold text-lg">Top 150 Questions</h4><p class="text-sm text-gray-400 mt-2">The ultimate grind list. Unlock questions as you go.</p></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+        }
+
+        // --- SETUP WIZARD (Fixed: Restored this function) ---
+        function renderSetup() {
+            // STEP 1: Company Select
+            if (store.setupStep === 1) {
+                return `
+                    <div class="min-h-screen flex flex-col items-center justify-center p-4 bg-black">
+                        <button onclick="router.navigate('dashboard')" class="absolute top-28 left-8 text-gray-400 hover:text-white flex gap-2 items-center"><i data-lucide="arrow-left" class="w-4 h-4"></i> Dashboard</button>
+                        <div class="glass-panel p-8 rounded-2xl w-full max-w-5xl">
+                            <h2 class="text-3xl font-bold mb-2">Select Target Company</h2>
+                            <p class="text-gray-400 mb-8">Choose a company to simulate their specific interview loop.</p>
+                            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 max-h-[60vh] overflow-y-auto pr-2">
+                                ${COMPANIES_LIST.map(c => `<button onclick="actions.selectCompany('${c.key}')" class="p-6 rounded-xl bg-white/5 border border-white/10 hover:border-blue-500 hover:bg-blue-500/10 flex flex-col items-center gap-4 transition-all group"><div class="w-16 h-16 bg-white rounded-xl flex items-center justify-center p-2"><img src="https://logo.clearbit.com/${c.domain}" class="w-full h-full object-contain" onerror="this.src='https://via.placeholder.com/50'"/></div><span class="font-bold group-hover:text-blue-400">${c.name}</span></button>`).join('')}
+                            </div>
+                        </div>
+                    </div>`;
+            }
+
+            // STEP 2: Job Details
+            if (store.setupStep === 2) {
+                const c = store.interviewConfig.company;
+                return `
+                    <div class="min-h-screen flex flex-col items-center justify-center p-4 bg-black">
+                        <div class="glass-panel p-8 rounded-2xl w-full max-w-2xl">
+                            <div class="flex items-center gap-4 mb-4"><img src="https://logo.clearbit.com/${c.domain}" class="w-12 h-12 rounded-lg bg-white p-1"/><div><h2 class="text-2xl font-bold">1. Setup Interview</h2></div></div>
+                            <div class="mb-8"><h3 class="text-xl font-bold text-blue-400">${c.name} Simulation</h3><p class="text-gray-400 text-sm">Configure your session</p></div>
+                            <div class="space-y-6">
+                                ${Components.Select('setup-role', 'Target Role', ['Software Engineer', 'Frontend Engineer', 'Backend Engineer', 'Engineering Manager'].map(r=>({value:r, label:r})), 'Software Engineer')}
+                                ${Components.Select('setup-round', 'Interview Round', c.rounds.map(r=>({value:r, label:r.replace(/_/g, ' ').toUpperCase()})), c.rounds[0])}
+                            </div>
+                            <div class="flex justify-between mt-8 pt-8 border-t border-white/10">${Components.Button('Back', 'actions.prevSetupStep()', 'secondary')}${Components.Button('Next', 'actions.nextSetupStep()')}</div>
+                        </div>
+                    </div>`;
+            }
+
+            // STEP 3: Customize
+            if (store.setupStep === 3) {
+                 return `
+                    <div class="min-h-screen flex flex-col items-center justify-center p-4 bg-black">
+                        <div class="glass-panel p-8 rounded-2xl w-full max-w-3xl">
+                            <h2 class="text-2xl font-bold mb-6">2. Customize Your Mock Interview</h2>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                ${Components.Select('setup-interviewer', 'Interviewer', [{value: 'Basic', label: 'Basic Interviewer'}, {value: 'Intermediate', label: 'Intermediate Interviewer'}], 'Basic')}
+                                ${Components.Select('setup-difficulty', 'Difficulty', [{value: 'Entry Level', label: 'Entry Level'}, {value: 'Mid Level', label: 'Mid Level'}, {value: 'Senior Level', label: 'Senior Level'}], 'Entry Level')}
+                                ${Components.Select('setup-personality', 'Personality', [{value: 'Easy Going', label: '😃 Easy Going'}, {value: 'Professional', label: '😐 Professional'}, {value: 'Strict', label: '😠 Strict'}], 'Easy Going')}
+                                ${Components.Select('setup-accent', 'Accent', [{value: 'US', label: '🇺🇸 American English'}, {value: 'IN', label: '🇮🇳 Indian English'}], 'US')}
+                                
+                                <div class="col-span-1 md:col-span-2">
+                                    <label class="block text-gray-400 text-xs font-bold mb-2 uppercase">Programming Language</label>
+                                    <select id="setup-language-prog" class="w-full bg-black/40 border border-white/10 rounded-lg p-3 text-white focus:border-blue-500 focus:outline-none">
+                                        <option>JavaScript</option><option>Python</option><option>Java</option><option>C++</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="flex justify-between mt-8 pt-8 border-t border-white/10">${Components.Button('Back', 'actions.prevSetupStep()', 'secondary')}${Components.Button('Start Interview', 'actions.nextSetupStep()')}</div>
+                        </div>
+                    </div>`;
+            }
+
+            // STEP 4: Welcome & Permissions (COMPANY MODE)
+            if (store.setupStep === 4) {
+                 const isResume = store.interviewConfig.round.toLowerCase().includes('resume');
+                 return `
+                    <div class="min-h-screen flex flex-col items-center justify-center p-4 bg-black">
+                        <div class="glass-panel p-8 rounded-2xl w-full max-w-3xl">
+                            <h2 class="text-2xl font-bold mb-2">3. Welcome to the Interview</h2>
+                            <p class="text-gray-400 mb-8">Please confirm your details and device permissions.</p>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <div class="space-y-6">
+                                    <div><label class="block text-gray-400 text-xs font-bold mb-2 uppercase">Enter Your Name</label><input type="text" id="setup-username" placeholder="Candidate Name..." class="w-full bg-black/40 border border-white/10 rounded-lg p-3 text-white focus:border-blue-500 outline-none"><p class="text-[10px] text-gray-500 mt-1">AI will address you by this name.</p></div>
+                                    ${isResume ? `<div class="animate-in fade-in slide-in-from-top-2"><label class="block text-yellow-400 text-xs font-bold mb-2 uppercase flex items-center gap-2"><i data-lucide="file-text" class="w-3 h-3"></i> Resume Required</label><div class="border-2 border-dashed border-white/20 rounded-xl p-6 text-center cursor-pointer hover:bg-white/5 transition group" onclick="document.getElementById('resume-upload').click()"><i data-lucide="upload-cloud" class="w-8 h-8 mx-auto text-blue-400 mb-2 group-hover:scale-110 transition-transform"></i><p class="text-sm font-bold text-gray-300">Click to Upload Resume</p><p class="text-xs text-gray-500 mt-1" id="file-name">Supports: .txt, .pdf</p><input type="file" id="resume-upload" class="hidden" accept=".txt,.pdf" onchange="actions.handleFile(this)"></div></div>` : ''}
+                                    <div class="space-y-4 pt-4">
+                                        <div class="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/10"><div class="flex items-center gap-3"><i data-lucide="camera" class="text-blue-400"></i><div class="text-sm font-bold">Camera & Mic <span class="block text-[10px] text-gray-500 font-normal">Must be on always</span></div></div><input type="checkbox" class="toggle-checkbox" onclick="actions.toggleMedia(this)"></div>
+                                        <div class="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/10"><div class="flex items-center gap-3"><i data-lucide="monitor" class="text-purple-400"></i><div class="text-sm font-bold">Share Screen <span class="block text-[10px] text-gray-500 font-normal">Mandatory for recording</span></div></div><input type="checkbox" class="toggle-checkbox" onclick="actions.toggleScreen(this)"></div>
+                                    </div>
+                                </div>
+                                <div class="bg-black rounded-xl border border-white/10 overflow-hidden relative aspect-[4/3] flex items-center justify-center"><video id="preview-video" class="w-full h-full object-cover hidden" autoplay muted playsinline></video><div id="preview-placeholder" class="text-center text-gray-600"><i data-lucide="video-off" class="w-12 h-12 mx-auto mb-2"></i><p>Preview</p></div></div>
+                            </div>
+                            <div class="pt-8 flex justify-end">${Components.Button('Start Session', 'router.navigate(\'interview\'); actions.startInterviewSession()', 'primary', 'start-session-btn', true)}</div>
+                        </div>
+                    </div>`;
+            }
+        }
+
+        // --- NEW: RENDER QUESTION SETUP (Top 150 Mode) ---
+        function renderQuestionSetup() {
+            const q = store.interviewConfig.question;
+            return `
+                <div class="min-h-screen flex flex-col items-center justify-center p-4 bg-black">
+                    <div class="glass-panel p-8 rounded-2xl w-full max-w-3xl">
+                        <div class="flex items-center gap-3 mb-2 text-purple-400">
+                             <i data-lucide="code-2" class="w-6 h-6"></i>
+                             <span class="font-bold uppercase tracking-wider text-sm">Top 150 Questions</span>
+                        </div>
+                        <h2 class="text-2xl font-bold mb-2">Solve: ${q.title}</h2>
+                        <p class="text-gray-400 mb-8">Prepare your environment. The session will be recorded for your performance report.</p>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div class="space-y-6">
+                                <div>
+                                    <label class="block text-gray-400 text-xs font-bold mb-2 uppercase">Enter Profile Username</label>
+                                    <input type="text" id="q-setup-username" placeholder="Your Name..." class="w-full bg-black/40 border border-white/10 rounded-lg p-3 text-white focus:border-blue-500 outline-none">
+                                </div>
+                                <div class="space-y-4 pt-4">
+                                    <div class="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/10">
+                                        <div class="flex items-center gap-3">
+                                            <i data-lucide="camera" class="text-blue-400"></i>
+                                            <div class="text-sm font-bold">Camera & Mic</div>
+                                        </div>
+                                        <input type="checkbox" class="toggle-checkbox" onclick="actions.toggleMedia(this)">
+                                    </div>
+                                    <div class="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/10">
+                                        <div class="flex items-center gap-3">
+                                            <i data-lucide="monitor" class="text-purple-400"></i>
+                                            <div class="text-sm font-bold">Share Screen <span class="block text-[10px] text-gray-500 font-normal">Mandatory</span></div>
+                                        </div>
+                                        <input type="checkbox" class="toggle-checkbox" onclick="actions.toggleScreen(this)">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="bg-black rounded-xl border border-white/10 overflow-hidden relative aspect-[4/3] flex items-center justify-center">
+                                <video id="preview-video" class="w-full h-full object-cover hidden" autoplay muted playsinline></video>
+                                <div id="preview-placeholder" class="text-center text-gray-600">
+                                    <i data-lucide="video-off" class="w-12 h-12 mx-auto mb-2"></i>
+                                    <p>Preview</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="pt-8 flex justify-between border-t border-white/10 mt-8">
+                             ${Components.Button('Cancel', 'router.navigate(\'questions\')', 'secondary')}
+                             ${Components.Button('Start Session', 'actions.confirmQuestionSetup()', 'primary', 'start-session-btn', true)}
+                        </div>
+                    </div>
+                </div>`;
+        }
+
+
+        function renderQuestionsList() {
+            return `
+                <div class="flex h-screen bg-black flex-col pt-16">
+                    <div class="h-16 border-b border-white/10 flex items-center justify-between px-8 bg-black sticky top-0 z-10"><button onclick="router.navigate('dashboard')" class="text-gray-400 hover:text-white flex gap-2 items-center"><i data-lucide="arrow-left" class="w-4 h-4"></i> Dashboard</button><h2 class="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600">Top 150 Questions</h2><div class="text-sm font-mono text-gray-500">Solved: <span class="text-white">${store.completedQuestions.length - 1}/150</span></div></div>
+                    <div class="flex-1 overflow-y-auto p-8"><div class="max-w-5xl mx-auto space-y-3">${QUESTIONS_150.map(q => { const isDone = store.completedQuestions.includes(q.id); const isLocked = !isDone && !store.completedQuestions.includes(q.id - 1) && q.id !== 1; return `<div onclick="${!isLocked ? `actions.initQuestionSetup(${q.id})` : ''}" class="flex items-center justify-between p-4 rounded-xl border ${isLocked ? 'border-white/5 bg-white/5 opacity-50 cursor-not-allowed' : 'border-white/10 bg-white/5 hover:border-purple-500 cursor-pointer'} transition-all"><div class="flex items-center gap-4"><span class="text-gray-500 font-mono w-8">#${q.id}</span><div><div class="font-bold flex items-center gap-2">${q.title}${isDone ? '<i data-lucide="check-circle" class="w-4 h-4 text-green-500"></i>' : ''}</div><div class="flex gap-2 text-xs mt-1 text-gray-400"><span class="${q.diff==='Easy'?'text-green-400':q.diff==='Medium'?'text-yellow-400':'text-red-400'}">${q.diff}</span><span>•</span><span>${q.cat}</span></div></div></div>${isLocked ? '<i data-lucide="lock" class="w-5 h-5 text-gray-600"></i>' : '<button class="px-4 py-1 bg-purple-600/20 text-purple-400 rounded-lg text-xs font-bold hover:bg-purple-600 hover:text-white transition-colors">Solve</button>'}</div>`; }).join('')}</div></div></div>`;
+        }
+
+        function renderInterview() {
+            const isCompany = store.interviewConfig.mode === 'company';
+            const title = isCompany ? `${store.interviewConfig.company.name} - ${store.interviewConfig.round.replace(/_/g, ' ').toUpperCase()}` : `Problem #${store.interviewConfig.question.id}: ${store.interviewConfig.question.title}`;
+            const isTechnical = !isCompany || store.interviewConfig.round.toLowerCase().includes('technical') || store.interviewConfig.round.toLowerCase().includes('coding');
+
+            return `
+                <div class="h-screen flex flex-col bg-black">
+                    <div class="h-14 border-b border-white/10 flex items-center justify-between px-6 bg-black z-20"><div class="flex items-center gap-4"><span class="font-bold text-gray-300 truncate max-w-md">${title}</span><span class="bg-red-500/10 text-red-500 px-2 py-0.5 rounded text-[10px] font-bold uppercase animate-pulse">Live Session</span></div><div class="flex items-center gap-6"><div class="font-mono text-xl font-bold text-blue-400" id="timer-display">00:00</div><button onclick="actions.endInterview()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-1.5 rounded-lg text-sm font-bold transition-colors">End Session</button></div></div>
+                    <div class="flex-grow flex overflow-hidden">
+                        ${isTechnical ? `
+                        <div class="w-3/5 flex flex-col border-r border-white/10 bg-[#1e1e1e]">
+                            <div class="h-1/2 flex flex-col relative border-b border-white/10"><div class="bg-[#252526] px-4 py-2 flex items-center justify-between text-xs border-b border-[#3e3e42] text-gray-400"><span>main.${store.interviewConfig.programmingLanguage === 'Python' ? 'py' : store.interviewConfig.programmingLanguage === 'Java' ? 'java' : store.interviewConfig.programmingLanguage === 'C++' ? 'cpp' : 'js'}</span><button onclick="actions.submitCode()" class="hover:text-white flex items-center gap-1"><i data-lucide="play" class="w-3 h-3"></i> Submit Code</button></div><textarea class="flex-grow w-full bg-[#1e1e1e] text-[#d4d4d4] p-4 font-mono text-sm resize-none focus:outline-none code-editor" spellcheck="false" oninput="store.interviewData.currentCode = this.value">${store.interviewData.currentCode}</textarea></div>
+                            <div class="h-1/2 bg-black flex flex-col relative"><div class="px-4 py-2 bg-white/5 border-b border-white/5 text-xs font-bold uppercase text-gray-500 flex justify-between"><span>Live Transcript</span><span id="live-typing" class="text-blue-400 italic font-normal normal-case hidden">User typing...</span></div><div id="transcript-box" class="flex-grow overflow-y-auto p-4 flex flex-col space-y-2">${store.interviewData.transcript.map(t => Components.ChatMessage(t.speaker, t.text)).join('')}</div></div>
+                        </div>` : `
+                        <div class="w-3/5 flex flex-col border-r border-white/10 bg-black"><div class="px-6 py-4 border-b border-white/10"><h3 class="font-bold text-lg">Interview Transcript</h3></div><div id="transcript-box" class="flex-grow overflow-y-auto p-6 flex flex-col space-y-4">${store.interviewData.transcript.map(t => Components.ChatMessage(t.speaker, t.text)).join('')}<div id="live-typing" class="text-sm text-blue-400 italic hidden p-2"></div></div></div>`}
+                        <div class="w-2/5 bg-black flex flex-col relative">
+                             <div class="flex-1 flex flex-col items-center justify-center p-8 border-b border-white/10 relative overflow-hidden"><div class="absolute inset-0 bg-blue-900/10 z-0"></div><div class="relative z-10 w-48 h-48 rounded-full bg-gray-800 border-4 border-gray-700 overflow-hidden shadow-2xl mb-6"><img src="https://api.dicebear.com/7.x/bottts/svg?seed=Felix" class="w-full h-full object-cover p-2"/></div><div class="text-center z-10"><h3 class="font-bold text-2xl mb-1">AI Interviewer</h3><div class="flex items-center justify-center gap-2"><span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span><span class="text-xs text-blue-400 font-mono">Listening & Analyzing</span></div></div></div>
+                             <div class="h-1/3 bg-[#111] p-6 flex flex-col gap-4">
+                                <div class="flex-1 flex gap-4">
+                                    <div class="w-1/3 bg-black rounded-xl border border-white/10 overflow-hidden relative"><video id="user-camera-feed" class="w-full h-full object-cover" autoplay muted playsinline></video><div class="absolute bottom-2 left-2 text-[10px] bg-black/60 px-2 py-1 rounded text-white">You</div></div>
+                                    <div class="flex-1 flex flex-col gap-2 items-center justify-center">
+                                        <!-- Visualizer Bar -->
+                                        <div id="voice-visualizer" class="hidden w-full h-8 flex items-center justify-center gap-1 mb-2 voice-active">
+                                            <div class="bar w-1 h-full bg-blue-500 rounded-full"></div>
+                                            <div class="bar w-1 h-full bg-purple-500 rounded-full"></div>
+                                            <div class="bar w-1 h-full bg-blue-500 rounded-full"></div>
+                                            <div class="bar w-1 h-full bg-purple-500 rounded-full"></div>
+                                            <div class="bar w-1 h-full bg-blue-500 rounded-full"></div>
+                                            <span class="text-xs text-blue-400 font-bold ml-2">Speaking...</span>
+                                        </div>
+                                        <button id="answer-btn" onclick="actions.toggleAnswer()" class="w-full h-16 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-lg shadow-lg shadow-blue-900/20 flex items-center justify-center gap-3 transition-all active:scale-95"><i data-lucide="mic"></i> Start Answer</button>
+                                    </div>
+                                </div>
+                             </div>
+                        </div>
+                    </div>
+                </div>`;
+        }
+
+        function renderResults() {
+             const res = store.interviewData.latestAnalysis || { score: 0, resume_score: null, feedback: "No Data", improvement_plan: [] };
+             const showResumeScore = res.resume_score !== null && res.resume_score !== undefined;
+             const hasVideo = !!store.interviewData.recordedVideoBlob;
+             const userName = store.interviewConfig.userName;
+
+             return `
+                <div class="min-h-screen bg-black p-8 overflow-y-auto">
+                    <div class="max-w-4xl mx-auto glass-panel p-8 rounded-2xl">
+                        <div class="flex justify-between items-start mb-8"><div><h1 class="text-3xl font-bold mb-1">Performance Report</h1><p class="text-gray-400 text-sm">Candidate: <span class="text-white font-bold">${userName}</span> • ${new Date().toLocaleDateString()}</p></div><div class="text-right flex gap-6">${showResumeScore ? `<div><div class="text-4xl font-bold text-yellow-400">${res.resume_score}/100</div><div class="text-xs text-gray-500 uppercase">Resume Score</div></div>` : ''}<div><div class="text-4xl font-bold text-blue-400">${res.score}/100</div><div class="text-xs text-gray-500 uppercase">Interview Score</div></div></div></div>
+                        <div class="space-y-6">
+                            ${hasVideo ? `
+                                <div class="bg-blue-900/20 border border-blue-500/30 p-4 rounded-xl flex justify-between items-center animate-in fade-in">
+                                    <div class="flex items-center gap-3">
+                                        <div class="p-2 bg-blue-600 rounded-lg"><i data-lucide="video" class="text-white w-5 h-5"></i></div>
+                                        <div>
+                                            <div class="font-bold text-blue-100">Session Recorded</div>
+                                            <div class="text-xs text-blue-300">Review your body language and communication</div>
+                                        </div>
+                                    </div>
+                                    <button onclick="actions.playRecording()" class="bg-white text-blue-900 hover:bg-gray-200 px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-colors">
+                                        <i data-lucide="play-circle" class="w-4 h-4"></i> View Recorded Video
+                                    </button>
+                                </div>
+                            ` : ''}
+                            
+                            <div class="bg-white/5 p-6 rounded-xl border border-white/10">
+                                <h3 class="font-bold mb-2 text-blue-400 uppercase text-xs tracking-wider">Honest Feedback to ${userName}</h3>
+                                <p class="text-gray-300 text-sm leading-relaxed whitespace-pre-line">${res.feedback}</p>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4"><div class="bg-green-500/10 p-6 rounded-xl border border-green-500/20"><h3 class="font-bold mb-4 text-green-400 text-sm uppercase">Strengths</h3><ul class="list-disc list-inside text-xs text-gray-300 space-y-1">${res.strengths?.map(s => `<li>${s}</li>`).join('') || '<li>N/A</li>'}</ul></div><div class="bg-red-500/10 p-6 rounded-xl border border-red-500/20"><h3 class="font-bold mb-4 text-red-400 text-sm uppercase">Weaknesses</h3><ul class="list-disc list-inside text-xs text-gray-300 space-y-1">${res.weaknesses?.map(s => `<li>${s}</li>`).join('') || '<li>N/A</li>'}</ul></div></div>
+                        </div>
+                        <div class="mt-8 pt-8 border-t border-white/10 flex justify-end gap-4">
+                            ${Components.Button('Download Report PDF', 'actions.downloadPlan()', 'primary', 'download-plan-btn')}
+                            ${Components.Button('Back to Dashboard', "router.navigate('dashboard')", 'secondary')}
+                        </div>
+                    </div>
+                    
+                    <!-- VIDEO MODAL -->
+                    <div id="video-modal" class="fixed inset-0 bg-black/90 z-50 hidden flex items-center justify-center p-8 backdrop-blur-sm">
+                        <div class="w-full max-w-5xl bg-[#111] border border-white/20 rounded-xl overflow-hidden relative shadow-2xl">
+                            <div class="p-4 border-b border-white/10 flex justify-between items-center bg-[#1a1a1a]">
+                                <span class="font-bold text-white">Session Recording</span>
+                                <button onclick="actions.closeVideo()" class="text-gray-400 hover:text-white transition-colors"><i data-lucide="x" class="w-6 h-6"></i></button>
+                            </div>
+                            <video id="playback-video" class="w-full max-h-[70vh] bg-black" controls></video>
+                        </div>
+                    </div>
+                </div>`;
+        }
+
+        function renderPricing() {
+            return `
+                <div class="min-h-screen bg-black text-white py-24 px-4 overflow-x-hidden">
+                    <div class="max-w-7xl mx-auto">
+                        <div class="text-center mb-16 space-y-4">
+                            <h1 class="text-5xl font-extrabold tracking-tight">
+                                Simple, Transparent <span class="bg-gradient-to-r from-purple-400 via-white to-purple-400 bg-clip-text text-transparent animate-gradient-text">Pricing</span>
+                            </h1>
+                            <p class="text-xl text-gray-400">Choose the plan that fits your preparation needs.</p>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
+                            
+                            <!-- Starter -->
+                            <div class="glass-panel p-8 rounded-2xl border border-white/10 hover:border-white/20 transition-colors">
+                                <h3 class="text-xl font-bold mb-4">Starter</h3>
+                                <div class="text-4xl font-bold mb-6">₹0<span class="text-lg text-gray-500 font-normal">/mo</span></div>
+                                <ul class="space-y-4 mb-8">
+                                    <li class="flex items-center gap-3 text-gray-300">
+                                        <div class="w-5 h-5 rounded-full bg-green-500/20 flex items-center justify-center text-green-400"><i data-lucide="check" class="w-3 h-3"></i></div>
+                                        1 Mock Interview / Day
+                                    </li>
+                                    <li class="flex items-center gap-3 text-gray-300">
+                                        <div class="w-5 h-5 rounded-full bg-green-500/20 flex items-center justify-center text-green-400"><i data-lucide="check" class="w-3 h-3"></i></div>
+                                        Basic Feedback
+                                    </li>
+                                </ul>
+                                <button class="w-full py-3 rounded-xl border border-white/20 hover:bg-white/5 transition-colors font-bold">Get Started</button>
+                            </div>
+
+                            <!-- Pro -->
+                            <div class="relative bg-[#0f0f13] p-8 rounded-2xl border border-purple-500 shadow-[0_0_40px_rgba(168,85,247,0.15)] scale-105 z-10">
+                                <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-purple-600 to-blue-600 rounded-t-2xl"></div>
+                                <div class="absolute top-4 right-4 bg-purple-600 text-[10px] font-bold px-2 py-1 rounded text-white tracking-wide">MOST POPULAR</div>
+                                <h3 class="text-xl font-bold mb-4 text-white">Pro</h3>
+                                <div class="text-4xl font-bold mb-6">₹499<span class="text-lg text-gray-500 font-normal">/mo</span></div>
+                                <ul class="space-y-4 mb-8">
+                                    <li class="flex items-center gap-3 text-gray-300">
+                                        <div class="w-5 h-5 rounded-full bg-purple-500/20 flex items-center justify-center text-purple-400"><i data-lucide="check" class="w-3 h-3"></i></div>
+                                        Unlimited Interviews
+                                    </li>
+                                    <li class="flex items-center gap-3 text-gray-300">
+                                        <div class="w-5 h-5 rounded-full bg-purple-500/20 flex items-center justify-center text-purple-400"><i data-lucide="check" class="w-3 h-3"></i></div>
+                                        Detailed Performance Analytics
+                                    </li>
+                                </ul>
+                                <button class="w-full py-3 rounded-xl bg-purple-600 hover:bg-purple-700 transition-colors font-bold shadow-lg shadow-purple-900/20">Subscribe Now</button>
+                            </div>
+
+                            <!-- Expert Yearly -->
+                            <div class="glass-panel p-8 rounded-2xl border border-white/10 hover:border-white/20 transition-colors">
+                                <h3 class="text-xl font-bold mb-4">Expert Yearly</h3>
+                                <div class="text-4xl font-bold mb-1">₹4999<span class="text-lg text-gray-500 font-normal">/yr</span></div>
+                                <p class="text-sm text-green-400 mb-6">Save ₹1000 yearly</p>
+                                <ul class="space-y-4 mb-8">
+                                    <li class="flex items-center gap-3 text-gray-300">
+                                        <div class="w-5 h-5 rounded-full bg-green-500/20 flex items-center justify-center text-green-400"><i data-lucide="check" class="w-3 h-3"></i></div>
+                                        All Pro Features
+                                    </li>
+                                    <li class="flex items-center gap-3 text-gray-300">
+                                        <div class="w-5 h-5 rounded-full bg-green-500/20 flex items-center justify-center text-green-400"><i data-lucide="check" class="w-3 h-3"></i></div>
+                                        Priority Support
+                                    </li>
+                                </ul>
+                                <button class="w-full py-3 rounded-xl border border-white/20 hover:bg-white/5 transition-colors font-bold">Choose Yearly</button>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>`;
+        }
+
+        function renderAbout() {
+            return `
+                <div class="min-h-screen bg-black text-white py-20 px-4 relative overflow-x-hidden">
+                    <div class="max-w-7xl mx-auto space-y-32">
+                        
+                        <!-- Header Section -->
+                        <div class="grid md:grid-cols-2 gap-12 items-center animate-in fade-in slide-in-from-bottom-4 duration-700">
+                            <div class="space-y-6">
+                                <h1 class="text-5xl md:text-6xl font-extrabold leading-tight">
+                                    About <span class="bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-transparent">Mockify AI</span>
+                                </h1>
+                                <p class="text-xl text-gray-400 leading-relaxed font-light">
+                                    Building a world where interview fear is not an afterthought—but a promise.
+                                </p>
+                            </div>
+                            <div class="relative group">
+                                <div class="absolute -inset-1 bg-gradient-to-r from-purple-600 to-blue-600 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
+                                <img src="about.jpg" alt="About Mockify" class="relative rounded-2xl shadow-2xl w-full object-cover h-64 md:h-80 border border-white/10" onerror="this.src='https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&q=80'">
+                            </div>
+                        </div>
+
+                        <!-- Mission & Vision Cards -->
+                        <div class="grid md:grid-cols-2 gap-8">
+                            <div class="p-8 rounded-2xl bg-purple-900/10 border border-purple-500/30 hover:bg-purple-900/20 transition-all duration-300 group">
+                                <div class="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                                    <i data-lucide="target" class="w-6 h-6 text-purple-400 animate-pulse"></i>
+                                </div>
+                                <h3 class="text-2xl font-bold text-purple-400 mb-4">Our Mission</h3>
+                                <p class="text-gray-300 leading-relaxed">
+                                    To democratize interview preparation by providing accessible, high-quality, AI-driven coaching that empowers candidates to present their best selves.
+                                </p>
+                            </div>
+                            <div class="p-8 rounded-2xl bg-purple-900/10 border border-purple-500/30 hover:bg-purple-900/20 transition-all duration-300 group">
+                                <div class="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                                    <i data-lucide="eye" class="w-6 h-6 text-purple-400 animate-pulse"></i>
+                                </div>
+                                <h3 class="text-2xl font-bold text-purple-400 mb-4">Our Vision</h3>
+                                <p class="text-gray-300 leading-relaxed">
+                                    A world where talent meets opportunity without the barrier of anxiety, creating a seamless bridge between education and employment.
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Goal Achieved Timeline -->
+                        <div class="grid md:grid-cols-2 gap-12 relative">
+                            <div class="space-y-12 relative pl-8 border-l-2 border-gray-800 timeline-container">
+                                <div class="absolute left-[-2px] top-0 w-[2px] bg-purple-500 timeline-progress"></div>
+                                
+                                <div>
+                                    <h2 class="text-4xl font-bold bg-gradient-to-r from-purple-400 to-pink-600 bg-clip-text text-transparent mb-8">Goal Achieved</h2>
+                                    <div class="space-y-12">
+                                        <div class="relative">
+                                            <div class="absolute -left-[41px] top-1 w-5 h-5 rounded-full bg-purple-500 border-4 border-black shadow-[0_0_10px_rgba(168,85,247,0.5)]"></div>
+                                            <h4 class="text-xl font-bold text-white mb-2">Inception</h4>
+                                            <p class="text-gray-400">The idea was born from a dorm room struggle to find quality mock interview partners.</p>
+                                        </div>
+                                        <div class="relative">
+                                            <div class="absolute -left-[41px] top-1 w-5 h-5 rounded-full bg-purple-500 border-4 border-black shadow-[0_0_10px_rgba(168,85,247,0.5)]"></div>
+                                            <h4 class="text-xl font-bold text-white mb-2">Voice & Video Integration</h4>
+                                            <p class="text-gray-400">Integrated real-time speech processing to simulate actual interview pressure.</p>
+                                        </div>
+                                        <div class="relative">
+                                            <div class="absolute -left-[41px] top-1 w-5 h-5 rounded-full bg-purple-500 border-4 border-black shadow-[0_0_10px_rgba(168,85,247,0.5)]"></div>
+                                            <h4 class="text-xl font-bold text-white mb-2">AI Agents for All Rounds</h4>
+                                            <p class="text-gray-400">Specialized agents for behavioral, system design, and coding rounds to cover every aspect.</p>
+                                        </div>
+                                        <div class="relative">
+                                            <div class="absolute -left-[41px] top-1 w-5 h-5 rounded-full bg-purple-500 border-4 border-black shadow-[0_0_10px_rgba(168,85,247,0.5)]"></div>
+                                            <h4 class="text-xl font-bold text-white mb-2">Top 150 Question Module</h4>
+                                            <p class="text-gray-400">Curated list of must-do problems to ensure complete preparation.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="relative hidden md:block">
+                                <div class="sticky top-32">
+                                    <img src="milestone.jpg" class="rounded-2xl shadow-2xl border border-white/10 w-full object-cover aspect-[4/5]" onerror="this.src='https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&q=80'">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Spacer -->
+                        <div class="h-32"></div>
+
+                        <!-- Future Goals Timeline -->
+                        <div class="grid md:grid-cols-2 gap-12 relative">
+                            <div class="relative hidden md:block">
+                                <div class="sticky top-32">
+                                    <img src="milestone2.jpg" class="rounded-2xl shadow-2xl border border-white/10 w-full object-cover aspect-[4/5]" onerror="this.src='https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&q=80'">
+                                </div>
+                            </div>
+                            <div class="space-y-12 relative pl-8 border-l-2 border-gray-800 timeline-container">
+                                <div class="absolute left-[-2px] top-0 w-[2px] bg-purple-500 timeline-progress"></div>
+
+                                <div>
+                                    <h2 class="text-4xl font-bold bg-gradient-to-r from-purple-400 to-pink-600 bg-clip-text text-transparent mb-8">Future Goals</h2>
+                                    <div class="space-y-12">
+                                        <div class="relative">
+                                            <div class="absolute -left-[41px] top-1 w-5 h-5 rounded-full bg-purple-500 border-4 border-black shadow-[0_0_10px_rgba(168,85,247,0.5)]"></div>
+                                            <h4 class="text-xl font-bold text-white mb-2">Full AI Resume Ecosystem</h4>
+                                            <p class="text-gray-400">We aim to expand Mockify Resume Insight into a complete AI‑driven career ecosystem.</p>
+                                        </div>
+                                        <div class="relative">
+                                            <div class="absolute -left-[41px] top-1 w-5 h-5 rounded-full bg-purple-500 border-4 border-black shadow-[0_0_10px_rgba(168,85,247,0.5)]"></div>
+                                            <h4 class="text-xl font-bold text-white mb-2">VR‑Powered Interview Rooms</h4>
+                                            <p class="text-gray-400">Immersive interview experiences to bridge the gap between digital and physical.</p>
+                                        </div>
+                                        <div class="relative">
+                                            <div class="absolute -left-[41px] top-1 w-5 h-5 rounded-full bg-purple-500 border-4 border-black shadow-[0_0_10px_rgba(168,85,247,0.5)]"></div>
+                                            <h4 class="text-xl font-bold text-white mb-2">AI + Human Hybrid Hiring</h4>
+                                            <p class="text-gray-400">For Companies - Best of both worlds ensuring efficiency and human touch.</p>
+                                        </div>
+                                        <div class="relative">
+                                            <div class="absolute -left-[41px] top-1 w-5 h-5 rounded-full bg-purple-500 border-4 border-black shadow-[0_0_10px_rgba(168,85,247,0.5)]"></div>
+                                            <h4 class="text-xl font-bold text-white mb-2">Scaling to 100+ Companies</h4>
+                                            <p class="text-gray-400">Expanding our reach to support candidates targeting over 100 different top-tier tech companies.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>`;
+        }
+
+        // --- RESTORED LANDING PAGE ---
+        function renderLanding() {
+            // Generate random dots
+            const dots = Array.from({length: 150}).map(() => {
+                const left = Math.random() * 100;
+                const top = Math.random() * 100;
+                const delay = Math.random() * 20;
+                const duration = 2 + Math.random() * 5; 
+                const animType = Math.floor(Math.random() * 3) + 1; 
+                return `<div class="hero-dot" style="left: ${left}%; top: ${top}%; width: ${Math.random() * 6 + 2}px; height: ${Math.random() * 6 + 2}px; animation-name: drift-${animType}; animation-delay: -${delay}s; animation-duration: ${duration}s;"></div>`;
+            }).join('');
+
+            // --- CAROUSEL RENDER LOGIC ---
+            const currentIdx = store.teamCarouselIndex;
+            const carouselHTML = TEAM_MEMBERS.map((member, i) => {
+                let positionClasses = 'hidden';
+                let style = '';
+                
+                // Active Card (Center)
+                if (i === currentIdx) {
+                    positionClasses = 'z-20 scale-100 opacity-100 shadow-2xl active-card';
+                    style = 'left: 50%; transform: translateX(-50%);';
+                } 
+                // Previous Card (Left Peek)
+                else if (i === currentIdx - 1) {
+                    positionClasses = 'z-10 scale-90 opacity-40 grayscale';
+                    style = 'left: 0;';
+                }
+                // Next Card (Right Peek)
+                else if (i === currentIdx + 1) {
+                    positionClasses = 'z-10 scale-90 opacity-40 grayscale';
+                    style = 'right: 0;';
+                }
+
+                if (positionClasses === 'hidden') return '';
+
+                return `
+                <div class="absolute w-[70%] md:w-[500px] aspect-video md:aspect-[16/9] rounded-2xl overflow-hidden transition-all duration-500 ease-out border border-white/10 bg-gray-900 group ${positionClasses}" style="${style} top: 50%; transform: ${i===currentIdx ? 'translate(-50%, -50%)' : 'translateY(-50%)'} scale(${i===currentIdx ? 1 : 0.9});">
+                    <img src="${member.image}" alt="${member.name}" class="w-full h-full object-cover">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-90"></div>
+                    <div class="absolute bottom-0 left-0 w-full p-6">
+                        <h3 class="text-3xl font-bold text-white mb-1">${member.name}</h3>
+                        <p class="text-purple-400 font-medium text-lg">${member.role}</p>
+                    </div>
+                    <!-- Hover Overlay with LinkedIn -->
+                    <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center backdrop-blur-sm">
+                        <a href="${member.linkedin}" target="_blank" class="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center hover:bg-blue-500 transition-transform hover:scale-110 shadow-lg">
+                            <i data-lucide="linkedin" class="text-white w-8 h-8"></i>
+                        </a>
+                    </div>
+                </div>
+                `;
+            }).join('');
+
+            return `
+                <div class="min-h-screen bg-black relative overflow-x-hidden">
+                    <!-- Animated Dots Background -->
+                    <div class="fixed inset-0 z-0 pointer-events-none">
+                        ${dots}
+                    </div>
+
+                    <!-- Hero Section -->
+                    <div class="flex flex-col items-center pt-20 pb-20 text-center px-4 relative z-10">
+                        <div class="w-full max-w-4xl relative z-10">
+                            <div class="inline-block px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-sm font-medium mb-6 animate-pulse">🚀 Real Time Avatar (Coming soon)</div>
+                            <h1 class="text-7xl md:text-9xl font-extrabold tracking-tighter mb-6 bg-clip-text text-transparent bg-gradient-to-b from-white to-gray-500">
+                                <span class="block text-white">Master Your</span>
+                                <span class="block animate-text-shimmer bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-white to-purple-400 bg-[length:200%_auto]">Dream Job</span>
+                            </h1>
+                            <p class="text-xl text-gray-400 mb-10 max-w-2xl mx-auto">technical interviews with realistic AI agents, live coding<br>environments, and instant feedback.</p>
+                            
+                            <div class="flex gap-4 justify-center">
+                                ${Components.Button('Login', "router.navigate('login')", 'primary')}
+                                ${Components.Button('View Demo', "actions.openDemoVideo()", 'secondary')}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Marquee Section -->
+                    <div class="py-12 border-t border-white/10 bg-black/50 backdrop-blur-sm relative z-10 overflow-hidden">
+                        <div class="flex whitespace-nowrap animate-marquee gap-12 items-center">
+                            ${[...COMPANIES_LIST, ...COMPANIES_LIST].map(c => `
+                                <div class="flex items-center gap-3 px-4 opacity-70 hover:opacity-100 transition-opacity">
+                                    <div class="w-10 h-10 bg-white rounded-lg flex items-center justify-center p-1.5">
+                                        <img src="https://logo.clearbit.com/${c.domain}" class="w-full h-full object-contain" onerror="this.src='https://via.placeholder.com/40'"/>
+                                    </div>
+                                    <span class="text-lg font-bold text-gray-400 uppercase tracking-widest">${c.name}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <!-- Features/Text Section -->
+                    <div class="py-24 px-4 relative z-10 border-t border-white/5">
+                        <div class="max-w-7xl mx-auto">
+                            <!-- Header -->
+                            <div class="text-center mb-16">
+                                <h2 class="text-3xl font-bold mb-4 text-white">A better way to prepare for <span class="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-purple-600">coding interviews</span></h2>
+                                <p class="text-gray-400 text-lg md:text-xl w-full whitespace-nowrap overflow-hidden text-ellipsis leading-relaxed">Turn your practice into real interview performance with structured steps and instant improvement insights.</p>
+                            </div>
+
+                            <!-- Grid -->
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch mb-24">
+                                <!-- Card 1 -->
+                                <div class="bg-black rounded-2xl border border-white/10 p-1 relative overflow-hidden group hover:border-purple-600 hover:shadow-[0_0_20px_rgba(88,28,135,0.5)] transition-all duration-300">
+                                    <div class="absolute top-4 left-4 z-10">
+                                        <span class="px-3 py-1 rounded-full bg-black border border-white/20 text-white text-xs font-bold uppercase tracking-wider">Step 1</span>
+                                    </div>
+                                    <div class="p-6 pt-12 h-full flex flex-col">
+                                        <h3 class="text-xl font-bold text-white mb-2">Select a practice plan</h3>
+                                        <p class="text-sm text-gray-400 mb-6">Pick a practice plan for your targeted company or a study track we have prepared for you.</p>
+                                        <!-- Mock UI -->
+                                        <div class="bg-white rounded-xl p-4 text-black shadow-2xl flex-grow flex flex-col gap-3 transform group-hover:scale-[1.02] transition-transform duration-500 origin-top">
+                                            <div class="flex items-center gap-2 bg-gray-100 rounded-lg px-3 py-2 border border-gray-200">
+                                                <i data-lucide="search" class="w-4 h-4 text-gray-400"></i>
+                                                <span class="text-xs text-gray-400">Search...</span>
+                                            </div>
+                                            <div>
+                                                <div class="text-[10px] font-bold text-gray-400 mb-2 uppercase tracking-wide">COMPANIES</div>
+                                                <div class="space-y-2">
+                                                    <div class="flex items-center justify-between text-xs font-medium p-2 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors">
+                                                        <span class="flex items-center gap-2"><img src="https://logo.clearbit.com/google.com" class="w-4 h-4" onerror="this.src='https://via.placeholder.com/16'"/> Google – Top 50...</span>
+                                                        <i data-lucide="chevron-right" class="w-3 h-3 text-gray-300"></i>
+                                                    </div>
+                                                    <div class="flex items-center justify-between text-xs font-medium p-2 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors">
+                                                        <span class="flex items-center gap-2"><img src="https://logo.clearbit.com/amazon.com" class="w-4 h-4" onerror="this.src='https://via.placeholder.com/16'"/> Amazon – 60 must...</span>
+                                                        <i data-lucide="chevron-right" class="w-3 h-3 text-gray-300"></i>
+                                                    </div>
+                                                    <!-- Added 2 more companies as requested -->
+                                                    <div class="flex items-center justify-between text-xs font-medium p-2 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors">
+                                                        <span class="flex items-center gap-2"><img src="https://logo.clearbit.com/microsoft.com" class="w-4 h-4" onerror="this.src='https://via.placeholder.com/16'"/> Microsoft – Top 40...</span>
+                                                        <i data-lucide="chevron-right" class="w-3 h-3 text-gray-300"></i>
+                                                    </div>
+                                                     <div class="flex items-center justify-between text-xs font-medium p-2 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors">
+                                                        <span class="flex items-center gap-2"><img src="https://logo.clearbit.com/meta.com" class="w-4 h-4" onerror="this.src='https://via.placeholder.com/16'"/> Meta – System Des...</span>
+                                                        <i data-lucide="chevron-right" class="w-3 h-3 text-gray-300"></i>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="mt-1">
+                                                <div class="text-[10px] font-bold text-gray-400 mb-2 uppercase tracking-wide">STUDY TRACKS</div>
+                                                <div class="flex items-center justify-between text-xs p-2 bg-purple-50 rounded-lg border border-purple-100">
+                                                    <span class="font-bold text-purple-700">DSA – 150 must practice</span>
+                                                    <span class="bg-purple-200 text-purple-800 text-[10px] px-1.5 py-0.5 rounded font-bold">150</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Card 2 -->
+                                <div class="rounded-2xl bg-gradient-to-b from-black via-[#1a0b2e] to-[#4c1d95] border border-white/10 p-1 relative overflow-hidden group hover:border-purple-600 hover:shadow-[0_0_20px_rgba(88,28,135,0.5)] transition-all duration-300">
+                                    <div class="absolute top-4 left-4 z-10">
+                                        <span class="px-3 py-1 rounded-full bg-black/50 backdrop-blur-md border border-white/20 text-white text-xs font-bold uppercase tracking-wider">Step 2</span>
+                                    </div>
+                                    <div class="p-6 pt-12 h-full flex flex-col relative z-10">
+                                        <h3 class="text-xl font-bold text-white mb-2">Start Realistic mock interview</h3>
+                                        <p class="text-sm text-gray-300 mb-8">Practice both communication and technical skills in realistic interview scenarios with Mockify AI.</p>
+                                        <!-- Animation -->
+                                        <div class="flex-grow flex items-center justify-center relative py-8">
+                                            <div class="absolute w-64 h-64 rounded-full border border-white/5 animate-[ping_3s_linear_infinite]"></div>
+                                            <div class="absolute w-48 h-48 rounded-full border border-white/10 animate-[ping_3s_linear_infinite_1s]"></div>
+                                            <div class="absolute w-32 h-32 rounded-full border border-white/20 animate-[ping_3s_linear_infinite_2s]"></div>
+                                            <div class="w-24 h-24 rounded-full bg-white text-black flex items-center justify-center text-center text-[10px] font-bold p-2 shadow-[0_0_40px_rgba(168,85,247,0.6)] z-10 animate-pulse">
+                                                practice for<br>the interview
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Card 3 -->
+                                <div class="bg-black rounded-2xl border border-white/10 p-1 relative overflow-hidden group hover:border-purple-600 hover:shadow-[0_0_20px_rgba(88,28,135,0.5)] transition-all duration-300">
+                                    <div class="absolute top-4 left-4 z-10">
+                                        <span class="px-3 py-1 rounded-full bg-black border border-white/20 text-white text-xs font-bold uppercase tracking-wider">Step 3</span>
+                                    </div>
+                                    <div class="p-6 pt-12 h-full flex flex-col">
+                                        <h3 class="text-xl font-bold text-white mb-2">Analysis report & Improvement plan</h3>
+                                        <p class="text-sm text-gray-400 mb-6">Use your dashboard to track and review performance. Improve your skills over time with guided insights.</p>
+                                        <!-- Metrics List -->
+                                        <div class="space-y-3 flex-grow">
+                                            <div class="flex items-center gap-3 p-3 rounded-lg bg-white/5 border border-white/5 hover:border-blue-500/50 hover:bg-blue-500/10 transition-all cursor-default">
+                                                <div class="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center text-blue-400"><i data-lucide="message-square" class="w-4 h-4"></i></div>
+                                                <div><div class="text-sm font-bold text-white">Communication</div><div class="text-[10px] text-gray-500">Clarity, tone, confidence</div></div>
+                                            </div>
+                                            <div class="flex items-center gap-3 p-3 rounded-lg bg-white/5 border border-white/5 hover:border-green-500/50 hover:bg-green-500/10 transition-all cursor-default">
+                                                <div class="w-8 h-8 rounded-lg bg-green-500/20 flex items-center justify-center text-green-400"><i data-lucide="brain-circuit" class="w-4 h-4"></i></div>
+                                                <div><div class="text-sm font-bold text-white">Problem solving</div><div class="text-[10px] text-gray-500">Approach & structure</div></div>
+                                            </div>
+                                            <div class="flex items-center gap-3 p-3 rounded-lg bg-white/5 border border-white/5 hover:border-yellow-500/50 hover:bg-yellow-500/10 transition-all cursor-default">
+                                                <div class="w-8 h-8 rounded-lg bg-yellow-500/20 flex items-center justify-center text-yellow-400"><i data-lucide="server" class="w-4 h-4"></i></div>
+                                                <div><div class="text-sm font-bold text-white">System design</div><div class="text-[10px] text-gray-500">Scalability & trade-offs</div></div>
+                                            </div>
+                                            <div class="flex items-center gap-3 p-3 rounded-lg bg-white/5 border border-white/5 hover:border-pink-500/50 hover:bg-pink-500/10 transition-all cursor-default">
+                                                <div class="w-8 h-8 rounded-lg bg-pink-500/20 flex items-center justify-center text-pink-400"><i data-lucide="code" class="w-4 h-4"></i></div>
+                                                <div><div class="text-sm font-bold text-white">Coding</div><div class="text-[10px] text-gray-500">Code quality & implementation</div></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Mockify AI Features Section (Bento Grid) -->
+                            <section id="mockify-features" class="relative z-10 py-24">
+                                <div class="max-w-7xl mx-auto">
+                                    <!-- Header -->
+                                    <h2 class="text-center mb-16 font-bold text-white text-3xl md:text-4xl">
+                                        <span class="text-purple-500">Mockify AI</span> is all you need to master coding interviews
+                                    </h2>
+
+                                    <!-- Grid: 60% / 40% on desktop -->
+                                    <div class="grid grid-cols-1 md:[grid-template-columns:3fr_2fr] gap-8 items-stretch">
+                                        <!-- Left Column: two stacked frames -->
+                                        <div class="flex flex-col gap-8">
+                                            <!-- Frame 1: AI-powered Mock Interviews -->
+                                            <div class="relative rounded-3xl border border-purple-400/40 overflow-hidden bg-gradient-to-br from-purple-700 via-purple-800 to-purple-900 p-6">
+                                                <div class="relative z-10">
+                                                    <div class="text-white font-bold text-xl mb-2">AI-powered Mock Interviews</div>
+                                                    <p class="text-purple-100 text-sm">Mockify AI interviewer simulates real interview scenarios, helping you master both communication and technical skills.</p>
+                                                </div>
+                                                <!-- Pulse Animation: concentric rings bottom-right -->
+                                                <div class="absolute bottom-6 right-6 w-40 h-40">
+                                                    <div class="absolute inset-0 rounded-full border border-white/20 animate-ping" style="animation-duration:3s"></div>
+                                                    <div class="absolute inset-0 rounded-full border border-white/30 animate-ping" style="animation-duration:3s; animation-delay:.5s"></div>
+                                                    <div class="absolute inset-0 rounded-full border border-white/40 animate-ping" style="animation-duration:3s; animation-delay:1s"></div>
+                                                    <div class="absolute inset-0 rounded-full border border-white/50 animate-ping" style="animation-duration:3s; animation-delay:1.5s"></div>
+                                                    <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 rounded-full bg-black flex items-center justify-center text-white text-xs font-bold">Mockify AI</div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Frame 2: Real-time feedback -->
+                                            <div class="rounded-3xl border border-white/10 bg-black/40 p-6 transition-colors hover:border-purple-500 hover:bg-purple-900/10">
+                                                <!-- Header -->
+                                                <div class="flex items-center gap-3 mb-4">
+                                                    <div class="w-10 h-10 rounded-xl bg-yellow-500/20 flex items-center justify-center">
+                                                        <svg viewBox="0 0 24 24" fill="none" class="w-6 h-6 text-yellow-400"><path d="M13 4L5 14h7l-1 6 8-10h-7l1-6z" fill="currentColor"/></svg>
+                                                    </div>
+                                                    <div>
+                                                        <div class="text-white font-bold">Real-time feedback</div>
+                                                        <div class="text-gray-400 text-sm">Real time conversation to get immediate feedback on your coding interview performance.</div>
+                                                    </div>
+                                                </div>
+                                                <!-- Chat Simulation -->
+                                                <div class="relative pl-6 border-l border-gray-700 space-y-4">
+                                                    <div class="relative">
+                                                        <div class="absolute -left-3 top-1 w-2 h-2 rounded-full bg-blue-400"></div>
+                                                        <div class="flex items-center gap-2 text-blue-400 text-sm">
+                                                            <span class="w-3 h-3 border-2 border-blue-400 rounded-full animate-spin"></span>
+                                                            AI Thinking
+                                                        </div>
+                                                    </div>
+                                                    <div class="relative text-gray-400 text-sm flex items-center gap-2">
+                                                        <div class="absolute -left-3 top-1 w-2 h-2 rounded-full bg-gray-500"></div>
+                                                        <i data-lucide="user" class="w-4 h-4 text-gray-500"></i>
+                                                        User asks question
+                                                    </div>
+                                                    <div class="relative text-gray-400 text-sm flex items-center gap-2">
+                                                        <div class="absolute -left-3 top-1 w-2 h-2 rounded-full bg-gray-500"></div>
+                                                        <i data-lucide="ear" class="w-4 h-4 text-gray-500"></i>
+                                                        AI listens & responds
+                                                    </div>
+                                                    <div class="relative text-purple-400 font-bold text-sm flex items-center gap-2">
+                                                        <div class="absolute -left-3 top-1 w-2 h-2 rounded-full bg-purple-500"></div>
+                                                        <i data-lucide="message-circle" class="w-4 h-4 text-purple-400"></i>
+                                                        AI speaking
+                                                    </div>
+                                                    <div class="relative text-gray-400 text-sm flex items-center gap-2">
+                                                        <div class="absolute -left-3 top-1 w-2 h-2 rounded-full bg-gray-500"></div>
+                                                        <i data-lucide="mic" class="w-4 h-4 text-gray-500"></i>
+                                                        User listens & responds
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Right Column: Resume Analyser (full height) -->
+                                        <div class="rounded-3xl border border-white/10 bg-black/40 p-6 transition-colors hover:border-purple-500 hover:bg-purple-900/10 flex flex-col">
+                                            <div class="flex justify-center mb-6">
+                                                <div class="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center animate-pulse">
+                                                    <img src="https://cdn-icons-png.flaticon.com/512/12454/12454034.png" onerror="this.onerror=null; this.src='resume.png';" class="w-10 h-10 filter invert brightness-0" alt="Resume Icon">
+                                                </div>
+                                            </div>
+                                            <div class="text-center mb-4">
+                                                <div class="text-white font-bold text-2xl">Resume Analyser</div>
+                                                <div class="text-gray-400 text-sm">Our advanced AI Resume Analyser scans your resume against thousands of job descriptions to identify gaps and suggest improvements.</div>
+                                            </div>
+                                            <ul class="mt-auto space-y-3">
+                                                <li class="flex items-center gap-2 text-gray-300"><i data-lucide="check-circle-2" class="w-5 h-5 text-green-500"></i> ATS Optimization Check</li>
+                                                <li class="flex items-center gap-2 text-gray-300"><i data-lucide="check-circle-2" class="w-5 h-5 text-green-500"></i> Keyword Impact Analysis</li>
+                                                <li class="flex items-center gap-2 text-gray-300"><i data-lucide="check-circle-2" class="w-5 h-5 text-green-500"></i> Formatting & Structure Review</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </section>
+
+                            <!-- Static Two-Column Section (no animations) -->
+                            <section class="theme-bg-body w-full">
+                                <div class="max-w-7xl mx-auto px-4 space-y-20">
+                                    <!-- Row 1: Left Paragraph, Right Image -->
+                                    <div class="grid md:grid-cols-2 gap-8 items-center">
+                                        <div>
+            <h3 class="text-4xl font-bold mb-4 theme-text-main">Practice by <span class="headline-accent anim-rtl">Company</span></h3>
+                                            <p class="text-lg theme-text-muted leading-relaxed">Target your dream job by practicing rounds specific to top tech companies. We've curated the exact interview flows for Google, Amazon, Microsoft and more.</p>
+                                        </div>
+                                        <div>
+                                            <img src="companyt.jpg" class="w-full h-[400px] object-contain rounded-3xl border theme-border bg-black" alt="Practice by Company">
+                                        </div>
+                                    </div>
+
+                                    <!-- Row 2: Left Image, Right Paragraph -->
+                                    <div class="grid md:grid-cols-2 gap-8 items-center">
+                                        <div>
+            <img src="questiont.jpg" class="w-full h-[400px] object-contain rounded-3xl border theme-border bg-black" alt="Top 150 Questions">
+                                        </div>
+                                        <div>
+            <h3 class="text-4xl font-bold mb-4 theme-text-main"><span class="headline-accent anim-rtl">Top 150</span> Questions</h3>
+                                            <p class="text-lg theme-text-muted leading-relaxed">Master the most asked Data Structures and Algorithms questions. Our curated list covers everything from Arrays to Dynamic Programming.</p>
+                                        </div>
+                                    </div>
+
+                                    <!-- Row 3: Left Paragraph, Right Image -->
+                                    <div class="grid md:grid-cols-2 gap-8 items-center">
+                                        <div>
+            <h3 class="text-4xl font-bold mb-4 theme-text-main">Rank <span class="headline-accent anim-rtl">Dashboard</span></h3>
+                                            <p class="text-lg theme-text-muted leading-relaxed">Track your progress and compete with peers on our global leaderboard. Our rank dashboard gives you real-time insights.</p>
+                                        </div>
+                                        <div>
+                                            <img src="rank.jpg" class="w-full h-[400px] object-contain rounded-3xl border theme-border bg-black" alt="Rank Dashboard">
+                                        </div>
+                                    </div>
+
+                                    <!-- Row 4: Left Image, Right Paragraph -->
+                                    <div class="grid md:grid-cols-2 gap-8 items-center">
+                                        <div>
+                                            <img src="custo.jpg" class="w-full h-[400px] object-contain rounded-3xl border theme-border bg-black" alt="Interview Rounds">
+                                        </div>
+                                        <div>
+            <h3 class="text-4xl font-bold mb-4 theme-text-main">Interview <span class="headline-accent anim-rtl">Rounds</span></h3>
+                                            <p class="text-lg theme-text-muted leading-relaxed">Experience complete interview simulation with all types of rounds that top tech companies conduct.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </section>
+
+                            <!-- MEET OUR TEAM CAROUSEL SECTION -->
+                            <div class="py-24 bg-black relative border-t border-white/10 overflow-hidden">
+                                <div class="max-w-7xl mx-auto px-4 text-center">
+                                    <h2 class="text-3xl font-bold text-purple-500 mb-12">Meet Our Team</h2>
+                                    
+                                    <!-- Carousel Container -->
+                                    <div class="relative h-[500px] w-full max-w-6xl mx-auto flex items-center justify-center">
+                                        
+                                        <!-- Navigation Buttons -->
+                                        ${currentIdx > 0 ? `
+                                        <button onclick="actions.prevTeamMember()" class="absolute left-4 md:left-8 z-30 w-12 h-12 rounded-full bg-black/50 border border-white/10 text-white flex items-center justify-center hover:bg-white/10 transition-colors backdrop-blur-sm">
+                                            <i data-lucide="chevron-left" class="w-6 h-6"></i>
+                                        </button>` : ''}
+                                        
+                                        ${currentIdx < TEAM_MEMBERS.length - 1 ? `
+                                        <button onclick="actions.nextTeamMember()" class="absolute right-4 md:right-8 z-30 w-12 h-12 rounded-full bg-black/50 border border-white/10 text-white flex items-center justify-center hover:bg-white/10 transition-colors backdrop-blur-sm">
+                                            <i data-lucide="chevron-right" class="w-6 h-6"></i>
+                                        </button>` : ''}
+
+                                        <!-- Cards Rendered via JS above -->
+                                        ${carouselHTML}
+                                    </div>
+
+                                    <!-- Pagination Dots -->
+                                    <div class="flex justify-center gap-3 mt-8">
+                                        ${TEAM_MEMBERS.map((_, i) => `
+                                            <button onclick="actions.setTeamMember(${i})" class="w-3 h-3 rounded-full transition-colors ${i === currentIdx ? 'bg-purple-500' : 'bg-gray-700 hover:bg-gray-500'}"></button>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                    
+                    <!-- Demo Video Modal -->
+                    <div id="demo-modal" class="fixed inset-0 bg-black/90 z-50 hidden flex items-center justify-center p-8 backdrop-blur-sm">
+                        <div class="w-full max-w-5xl bg-[#111] border border-white/20 rounded-xl overflow-hidden relative shadow-2xl">
+                            <div class="p-4 border-b border-white/10 flex justify-between items-center bg-[#1a1a1a]">
+                                <span class="font-bold text-white">Platform Demo</span>
+                                <button onclick="actions.closeDemoVideo()" class="text-gray-400 hover:text-white transition-colors"><i data-lucide="x" class="w-6 h-6"></i></button>
+                            </div>
+                            <video id="demo-video" class="w-full max-h-[70vh] bg-black" controls>
+                                <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" type="video/mp4">
+                                Your browser does not support the video tag.
+                            </video>
+                        </div>
+                    </div>
+                </div>`;
+        }
+
+        // --- 7. Main Render Loop ---
+        function renderApp() {
+            const app = document.getElementById('app');
+            // Nav Bar Logic
+            const isLoggedIn = store.user !== null;
+            const navActionContainer = document.getElementById('nav-right-action');
+            const mainNav = document.getElementById('main-nav');
+            const mainFooter = document.getElementById('main-footer');
+
+            // Hide/Show Nav & Footer based on view
+            // NOTE: Per user request, Navbar is now fixed top. We hide it ONLY during immersive interview/setup if desired,
+            // but the request implies the Navbar is a consistent element. However, typically full screen apps hide it.
+            // I will keep it hidden for 'interview' to focus, but show for others.
+            const hideNavViews = ['interview', 'login', 'question_setup'];
+            
+            if (hideNavViews.includes(store.view)) {
+                if(mainNav) mainNav.classList.add('hidden-force');
+                if(mainFooter) mainFooter.classList.add('hidden-force');
+                if(app) app.classList.remove('pt-24'); // Remove padding when nav is hidden
+            } else {
+                if(mainNav) mainNav.classList.remove('hidden-force');
+                if(mainFooter) mainFooter.classList.remove('hidden-force');
+                if(app) app.classList.add('pt-24'); // Add padding for fixed nav
+            }
+
+            if (navActionContainer) {
+                // Right Button Logic
+                if (isLoggedIn) {
+                    navActionContainer.innerHTML = `
+                        <div class="flex items-center gap-6">
+                            <a href="javascript:void(0)" onclick="router.navigate('dashboard')" class="text-sm font-bold text-purple-400 hover:text-purple-300 transition-colors">Dashboard</a>
+                            <button onclick="actions.logout()" class="px-4 py-2 rounded-lg border border-red-500/50 text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-all text-sm font-bold flex items-center gap-2">
+                               <i data-lucide="log-out" class="w-4 h-4"></i> Logout
+                            </button>
+                        </div>
+                    `;
+                    // Show center Dashboard link next to Pricing when logged in
+                    const dashCenter = document.getElementById('nav-dashboard-center');
+                    if (dashCenter) dashCenter.classList.remove('hidden');
+                } else {
+                     navActionContainer.innerHTML = `
+                        <button onclick="router.navigate('login')" class="px-6 py-2 rounded-lg bg-purple-600 hover:bg-purple-500 text-white transition-all text-sm font-bold shadow-lg shadow-purple-500/20 glow">
+                           Login
+                        </button>
+                    `;
+                    // Hide center Dashboard link when logged out
+                    const dashCenter = document.getElementById('nav-dashboard-center');
+                    if (dashCenter) dashCenter.classList.add('hidden');
+                }
+            }
+
+            switch(store.view) {
+                case 'landing': 
+                    app.innerHTML = renderLanding(); 
+                    if(actions.initScrollObserver) actions.initScrollObserver();
+                    break;
+                case 'about':
+                    app.innerHTML = renderAbout();
+                    setTimeout(actions.initScrollAnimations, 100);
+                    break;
+                case 'pricing':
+                    app.innerHTML = renderPricing();
+                    break;
+                case 'login': app.innerHTML = renderAuth(); break;
+                case 'dashboard': app.innerHTML = renderDashboard(); break;
+                case 'setup': app.innerHTML = renderSetup(); break;
+                case 'questions': app.innerHTML = renderQuestionsList(); break;
+                case 'question_setup': app.innerHTML = renderQuestionSetup(); break;
+                case 'interview': 
+                    app.innerHTML = renderInterview();
+                    const box = document.getElementById('transcript-box');
+                    if(box) box.scrollTop = box.scrollHeight;
+                    const vid = document.getElementById('user-camera-feed');
+                    if(vid && globalMediaStream) vid.srcObject = globalMediaStream;
+                    break;
+                case 'results': app.innerHTML = renderResults(); break;
+                default: app.innerHTML = renderLanding();
+            }
+            if(window.lucide) lucide.createIcons();
+        }
+
+        renderApp();
+    </script>
+</body>
+</html>
