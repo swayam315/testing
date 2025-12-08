@@ -321,7 +321,7 @@
             </div>
             
             <div class="border-t border-white/5 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
-                <p class="text-gray-600 text-sm">© 2024 HireReady AI. All rights reserved.</p>
+                <p class="text-gray-600 text-sm">© 2024 Mockify AI. All rights reserved.</p>
                 <div class="flex gap-6 text-sm text-gray-600">
                     <a href="#" class="hover:text-gray-400">Privacy Policy</a>
                     <a href="#" class="hover:text-gray-400">Terms of Service</a>
@@ -1058,7 +1058,7 @@
                 const analysis = store.interviewData.latestAnalysis;
                 const userName = store.interviewConfig.userName;
 
-                doc.setFontSize(22); doc.text("HireReady AI - Performance Report", 20, 20);
+                doc.setFontSize(22); doc.text("Mockify AI - Performance Report", 20, 20);
                 doc.setFontSize(12); doc.text(`Candidate: ${userName}`, 20, 30);
                 doc.text(`Date: ${new Date().toLocaleDateString()}`, 20, 36);
                 
@@ -1274,7 +1274,7 @@
             return `
                 <div class="flex h-screen overflow-hidden bg-black pt-16"> <!-- Added pt-16 to account for fixed navbar -->
                     <div class="w-64 bg-[#0f0f13] border-r border-white/10 flex flex-col p-4">
-                        <div class="flex items-center gap-2 mb-8 px-2"><div class="w-8 h-8 bg-gradient-to-tr from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold">H</div><span class="font-bold text-lg">HireReady</span></div>
+                        <div class="flex items-center gap-2 mb-8 px-2"><div class="w-8 h-8 bg-gradient-to-tr from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold">H</div><span class="font-bold text-lg">Mockify</span></div>
                         <nav class="flex-1 space-y-2">
                             <button onclick="actions.startCompanyPractice()" class="w-full text-left px-4 py-3 rounded-xl bg-gradient-to-r from-blue-600/20 to-transparent border border-blue-500/30 text-blue-200 hover:bg-blue-600/30 transition-all group">
                                 <div class="flex items-center gap-3"><i data-lucide="briefcase" class="w-5 h-5 text-blue-400"></i><div><div class="font-bold">Companies</div><div class="text-[10px] text-gray-400">Simulate Rounds</div></div></div>
@@ -2217,5 +2217,6 @@
     </script>
 </body>
 </html>
+
 
 
