@@ -333,7 +333,7 @@
     <!-- JavaScript Application Logic -->
     <script>
         // --- 1. State Management & Constants ---
-        let apiKey = "AIzaSyB6eAphTQwSZyLcsvJ9xGrLNxs0Xr5JKDo"; // Set API Key here
+        let apiKey = "AIzaSyB2EoGXF8tt6vhzrpxYXOzmjJQqk_QFRBs"; // Set API Key here
         const APP_ID = typeof __app_id !== 'undefined' ? __app_id : 'default';
 
         let globalMediaStream = null;
@@ -2215,6 +2215,29 @@
 
         renderApp();
     </script>
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-analytics.js";
+        // TODO: Add SDKs for Firebase products that you want to use
+        // https://firebase.google.com/docs/web/setup#available-libraries
+      
+        // Your web app's Firebase configuration
+        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+        const firebaseConfig = {
+          apiKey: "AIzaSyCK21ktDn0u_rlM6F7sdwJ5dUuolaq0LzU",
+          authDomain: "mockify-ai-f3a76.firebaseapp.com",
+          projectId: "mockify-ai-f3a76",
+          storageBucket: "mockify-ai-f3a76.firebasestorage.app",
+          messagingSenderId: "127093116858",
+          appId: "1:127093116858:web:066e97d5dce393a6ec5783",
+          measurementId: "G-71HZ8VWX4P"
+        };
+      
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+      </script>
 </body>
 </html>
 
