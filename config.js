@@ -1,5 +1,5 @@
 
-const GEMINI_API_KEY = "AIzaSyB2EoGXF8tt6vhzrpxYXOzmjJQqk_QFRBs";
+const GEMINI_API_KEY = "AIzaSyCuj1N4_vBCtWywaK54XgUihIiK0Bjxjl8";
 const FIREBASE_CONFIG = {
     apiKey: "AIzaSyCK21ktDn0u_rlM6F7sdwJ5dUuolaq0LzU",
     authDomain: "mockify-ai-f3a76.firebaseapp.com",
